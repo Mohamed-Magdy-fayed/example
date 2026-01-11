@@ -1,7 +1,7 @@
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 
-import { env } from "@/data/env/server";
+import { env } from "@/env/server";
 import * as schema from "./schema";
 
 /**
@@ -16,3 +16,7 @@ const conn = globalForDb.conn ?? postgres(env.DATABASE_URL);
 if (env.NODE_ENV !== "production") globalForDb.conn = conn;
 
 export const db = drizzle(conn, { schema });
+
+export async function closeDbConnection() {
+	await conn.end({ timeout: 5 });
+}

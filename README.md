@@ -2,27 +2,24 @@
 
 This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3-app`.
 
-## What's next? How do I make an app with this?
+## What's different? What do i get out of this repo?
 
-We try to keep this project as simple as possible, so you can start with just the scaffolding we set up for you, and add additional things later when they become necessary.
+we designed this repo to be a starting point for anyone that want  to build a business system and have all the tools he needs available in one place.
 
-If you are not familiar with the different technologies used in this project, please refer to the respective docs. If you still are in the wind, please join our [Discord](https://t3.gg/discord) and ask for help.
+here is what basics you have
 
-- [Next.js](https://nextjs.org)
-- [NextAuth.js](https://next-auth.js.org)
-- [Prisma](https://prisma.io)
-- [Drizzle](https://orm.drizzle.team)
-- [Tailwind CSS](https://tailwindcss.com)
-- [tRPC](https://trpc.io)
+- Next.js 16 with latest improvements and MCP server
+- a custom auth lib that you can extend and make it your own
+- drizzle with postgres already setup for auth
+- i18n out of the box with a modualr custom lib
+- Tailwind CSS & Shadcn UI for easy to customize UI
+- tRPC already setup and exposed as an API if you need
 
-## Learn More
+## who am i?
 
-To learn more about the [T3 Stack](https://create.t3.gg/), take a look at the following resources:
+My Name is Mohamed Magdy im a fullstack developer with coding experiance of 4+ years and a passion for creating usful tech
 
-- [Documentation](https://create.t3.gg/)
-- [Learn the T3 Stack](https://create.t3.gg/en/faq#what-learning-resources-are-currently-available) — Check out these awesome tutorials
-
-You can check out the [create-t3-app GitHub repository](https://github.com/t3-oss/create-t3-app) — your feedback and contributions are welcome!
+You can check out my website [gateling.com](https://gateling.com) — your feedback and contributions are welcome!
 
 ## How do I deploy this?
 
