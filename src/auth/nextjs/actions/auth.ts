@@ -3,24 +3,27 @@
 import { eq } from "drizzle-orm";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+
 import { getOAuthClient } from "@/auth/core";
-import { authError, formDataToObject, normalizeEmail } from "@/auth/core/helpers";
+import {
+    authError,
+    formDataToObject,
+    normalizeEmail,
+} from "@/auth/core/helpers";
 import {
     comparePasswords,
     generateSalt,
     hashPassword,
 } from "@/auth/core/passwordHasher";
 import { createSession, removeSession } from "@/auth/core/session";
+import { getCurrentUser } from "@/auth/nextjs/currentUser";
 import { signInSchema, signUpSchema } from "@/auth/schemas";
 import {
     type OAuthProvider,
     UserCredentialsTable,
     UsersTable,
 } from "@/auth/tables";
-import type {
-    PartialUser,
-    TypedResponse,
-} from "@/auth/types";
+import type { AuthState, PartialUser, TypedResponse } from "@/auth/types";
 import { getT } from "@/lib/i18n/actions";
 import { db } from "@/server/db";
 
@@ -72,12 +75,12 @@ export async function signInAction(
             };
         }
 
-        await createSession(user, await cookies())
+        await createSession(user, await cookies());
     } catch (error) {
         return authError(error);
     }
 
-    redirect("/")
+    redirect("/");
 }
 
 export async function signUpAction(
@@ -96,56 +99,58 @@ export async function signUpAction(
     const input = parsed.data;
     const email = normalizeEmail(input.email);
 
-    const result: TypedResponse<{ user: PartialUser }> = await db.transaction(async (trx) => {
-        const existing = await trx.query.UsersTable.findFirst({
-            columns: { id: true },
-            where: eq(UsersTable.email, email),
-        });
-
-        if (existing) {
-            return {
-                isError: true,
-                message: t("authTranslations.signUp.error.duplicate"),
-            };
-        }
-
-        const salt = generateSalt();
-        const passwordHash = await hashPassword(input.password, salt);
-
-        const [user] = await trx
-            .insert(UsersTable)
-            .values({
-                name: input.name,
-                email,
-                role: "user",
-            })
-            .returning({
-                id: UsersTable.id,
-                email: UsersTable.email,
-                name: UsersTable.name,
-                role: UsersTable.role,
+    const result: TypedResponse<{ user: PartialUser }> = await db.transaction(
+        async (trx) => {
+            const existing = await trx.query.UsersTable.findFirst({
+                columns: { id: true },
+                where: eq(UsersTable.email, email),
             });
 
-        if (!user) {
-            return {
-                isError: true,
-                message: t("authTranslations.signUp.error.generic"),
-            };
-        }
+            if (existing) {
+                return {
+                    isError: true,
+                    message: t("authTranslations.signUp.error.duplicate"),
+                };
+            }
 
-        await trx.insert(UserCredentialsTable).values({
-            userId: user.id,
-            passwordHash,
-            passwordSalt: salt,
-        });
+            const salt = generateSalt();
+            const passwordHash = await hashPassword(input.password, salt);
 
-        return { isError: false, user };
-    });
+            const [user] = await trx
+                .insert(UsersTable)
+                .values({
+                    name: input.name,
+                    email,
+                    role: "user",
+                })
+                .returning({
+                    id: UsersTable.id,
+                    email: UsersTable.email,
+                    name: UsersTable.name,
+                    role: UsersTable.role,
+                });
+
+            if (!user) {
+                return {
+                    isError: true,
+                    message: t("authTranslations.signUp.error.generic"),
+                };
+            }
+
+            await trx.insert(UserCredentialsTable).values({
+                userId: user.id,
+                passwordHash,
+                passwordSalt: salt,
+            });
+
+            return { isError: false, user };
+        },
+    );
 
     if (result.isError) return { isError: true, message: result.message };
-    await createSession(result.user, await cookies())
+    await createSession(result.user, await cookies());
 
-    redirect("/")
+    redirect("/");
 }
 
 export async function oAuthSignIn(provider: OAuthProvider) {
@@ -161,4 +166,16 @@ export async function signOutAction(): Promise<TypedResponse<{}>> {
         },
     });
     redirect("/sign-in");
+}
+
+export async function getAuth(): Promise<AuthState> {
+    const fullUser = await getCurrentUser({
+        withFullUser: true,
+    });
+    if (!fullUser) return { isAuthenticated: false, session: null };
+
+    return {
+        isAuthenticated: true,
+        session: { user: fullUser },
+    };
 }

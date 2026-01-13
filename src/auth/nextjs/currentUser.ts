@@ -2,37 +2,28 @@ import { eq } from "drizzle-orm";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { cache } from "react";
-import { OrganizationMembershipsTable } from "@/auth/tables";
-import { UsersTable } from "@/auth/tables/users-table";
+
+import { type User, UsersTable } from "@/auth/tables/users-table";
+import type { PartialUser } from "@/auth/types";
 import { db } from "@/server/db";
 import { getSessionFromCookie } from "../core/session";
 
-export type FullUser = Exclude<
-	Awaited<ReturnType<typeof getUserFromDb>>,
-	undefined | null
->;
-
-type User = Exclude<
-	Awaited<ReturnType<typeof getSessionFromCookie>>,
-	undefined | null
->;
-
 function _getCurrentUser(options: {
 	withFullUser: true;
 	redirectIfNotFound: true;
-}): Promise<FullUser>;
+}): Promise<User>;
 function _getCurrentUser(options: {
 	withFullUser: true;
 	redirectIfNotFound?: false;
-}): Promise<FullUser | null>;
+}): Promise<User | null>;
 function _getCurrentUser(options: {
 	withFullUser?: false;
 	redirectIfNotFound: true;
-}): Promise<User>;
+}): Promise<PartialUser>;
 function _getCurrentUser(options?: {
 	withFullUser?: false;
 	redirectIfNotFound?: false;
-}): Promise<User | null>;
+}): Promise<PartialUser | null>;
 async function _getCurrentUser({
 	withFullUser = false,
 	redirectIfNotFound = false,
@@ -56,24 +47,10 @@ async function _getCurrentUser({
 
 export const getCurrentUser = cache(_getCurrentUser);
 
-function getUserFromDb(id: string) {
+async function getUserFromDb(id: string) {
 	return db
-		.select({
-			id: UsersTable.id,
-			email: UsersTable.email,
-			name: UsersTable.name,
-			phone: UsersTable.phone,
-			imageUrl: UsersTable.imageUrl,
-			role: UsersTable.role,
-			emailVerified: UsersTable.emailVerified,
-			lastSignInAt: UsersTable.lastSignInAt,
-			organizationId: OrganizationMembershipsTable.organizationId,
-		})
+		.select()
 		.from(UsersTable)
-		.leftJoin(
-			OrganizationMembershipsTable,
-			eq(UsersTable.id, OrganizationMembershipsTable.userId),
-		)
 		.where(eq(UsersTable.id, id))
 		.then((results) => results[0]);
 }

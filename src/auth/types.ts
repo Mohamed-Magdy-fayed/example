@@ -1,9 +1,36 @@
 import type z from "zod";
-import type { OAuthProvider } from "@/auth/tables";
-import type { createOrganizationSchema, sessionSchema, signInSchema, signUpSchema } from "./schemas";
+
+import type { FullOrganization } from "@/auth/nextjs/actions";
+import type { OAuthProvider, User } from "@/auth/tables";
+import type {
+    createOrganizationSchema,
+    sessionSchema,
+    signInSchema,
+    signUpSchema,
+} from "./schemas";
 
 export type SessionPayload = z.infer<typeof sessionSchema>;
 export type PartialUser = z.infer<typeof sessionSchema>["user"];
+export type AuthState =
+    | {
+        isAuthenticated: false;
+        session: null;
+    }
+    | {
+        isAuthenticated: true;
+        session: { user: User };
+    };
+export type OrganizationState =
+    | {
+        hasActiveOrg: false;
+        activeOrganization: undefined;
+        organizations: FullOrganization[];
+    }
+    | {
+        hasActiveOrg: true;
+        activeOrganization: FullOrganization;
+        organizations: FullOrganization[];
+    };
 
 export type Cookies = {
     set: (

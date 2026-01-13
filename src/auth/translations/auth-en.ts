@@ -252,6 +252,9 @@ export default {
                 success: {
                     changeRequested: "Check your new inbox for a verification link.",
                 },
+                checkInbox: "Check your inbox for a verification code.",
+                description:
+                    "Change your email address. A verification link will be sent to the new address.",
                 current: "Current email:",
                 newLabel: "New email",
                 confirmLabel: "Confirm new email",
@@ -329,6 +332,9 @@ export default {
                 nameTooLong: "Organization name is too long",
                 invalidOrganization: "Invalid organization",
             },
+            manage: {
+                title: "Manage Organization",
+            },
             create: {
                 nameLabel: "Organization name",
                 namePlaceholder: "Acme Inc.",
@@ -336,8 +342,13 @@ export default {
                 descriptionPlaceholder: "Optional description",
                 submit: "Create organization",
                 submitting: "Creating...",
+                title: "Create a new organization",
             },
             actions: {
+                setActiveOrganization: {
+                    success: "Active organization set",
+                    error: "Unable to set active organization",
+                },
                 createOrganization: {
                     success: "Organization created",
                     error: "Unable to create organization",
@@ -350,15 +361,15 @@ export default {
                 common: {
                     noOrgAccess: "You do not have access to that organization",
                 },
-                setActiveOrganization: {
-                    success: "Organization selected",
-                },
                 members: {
                     update: "Memberships updated",
                 },
             },
             switcher: {
-                empty: "No organizations yet.",
+                add: "Add organization",
+                select: "Select organization",
+                manage: "Manage organizations",
+                empty: "Create an organization",
                 activeBadge: "Active",
                 current: "Current",
                 setActive: "Set active",

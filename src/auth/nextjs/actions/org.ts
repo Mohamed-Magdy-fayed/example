@@ -1,35 +1,32 @@
 "use server";
 
 import { and, desc, eq, inArray } from "drizzle-orm";
+import { revalidatePath } from "next/cache";
 import { z } from "zod";
-
+import { authError } from "@/auth/core";
+import { getCurrentUser } from "@/auth/nextjs/currentUser";
 import { createOrganizationSchema } from "@/auth/schemas";
 import {
+    type Organization,
     OrganizationMembershipsTable,
     OrganizationsTable,
 } from "@/auth/tables";
-import type { TypedResponse } from "@/auth/types";
+import type { OrganizationState, TypedResponse } from "@/auth/types";
 import { getT } from "@/lib/i18n/actions";
 import { db } from "@/server/db";
 
-const createOrganizationInputSchema = createOrganizationSchema.extend({
-    ownerUserId: z.uuid(),
-});
-const deleteOrganizationInputSchema = z.object({
-    actorUserId: z.uuid(),
-    organizationId: z.uuid(),
-});
 const upsertOrganizationsInputSchema = z.object({
     userId: z.uuid(),
     organizationIds: z.array(z.uuid()),
 });
-const listOrganizationsForUserSchema = z.uuid();
 
 export async function createOrganizationAction(
-    rawInput: z.infer<typeof createOrganizationInputSchema>,
+    rawInput: z.infer<typeof createOrganizationSchema>,
 ): Promise<TypedResponse<{ organizationId: string }>> {
     const { t } = await getT();
-    const parsed = createOrganizationInputSchema.safeParse(rawInput);
+    const { id } = await getCurrentUser({ redirectIfNotFound: true });
+
+    const parsed = createOrganizationSchema.safeParse(rawInput);
     if (!parsed.success) {
         return {
             isError: true,
@@ -37,13 +34,13 @@ export async function createOrganizationAction(
         };
     }
 
-    const { ownerUserId, nameAr, nameEn } = parsed.data;
+    const { nameAr, nameEn } = parsed.data;
     const trimmedEn = nameEn.trim();
     const trimmedAr = nameAr.trim();
 
     const [org] = await db
         .insert(OrganizationsTable)
-        .values({ nameEn: trimmedEn, nameAr: trimmedAr, ownerId: ownerUserId })
+        .values({ nameEn: trimmedEn, nameAr: trimmedAr, ownerId: id })
         .returning({ id: OrganizationsTable.id });
 
     if (!org) {
@@ -57,20 +54,23 @@ export async function createOrganizationAction(
         await trx
             .insert(OrganizationMembershipsTable)
             .values({
+                isCurrent: false,
                 organizationId: org.id,
-                userId: ownerUserId,
+                userId: id,
             })
             .onConflictDoNothing();
     });
+
+    revalidatePath("/");
 
     return { isError: false, organizationId: org.id };
 }
 
 export async function deleteOrganizationAction(
-    rawInput: z.infer<typeof deleteOrganizationInputSchema>,
+    rawInput: string,
 ): Promise<TypedResponse<{ deleted: true }>> {
     const { t } = await getT();
-    const parsed = deleteOrganizationInputSchema.safeParse(rawInput);
+    const parsed = z.uuid().safeParse(rawInput);
     if (!parsed.success) {
         return {
             isError: true,
@@ -78,7 +78,8 @@ export async function deleteOrganizationAction(
         };
     }
 
-    const { actorUserId, organizationId } = parsed.data;
+    const organizationId = parsed.data;
+    const { id: actorUserId } = await getCurrentUser({ redirectIfNotFound: true });
 
     const org = await db.query.OrganizationsTable.findFirst({
         columns: { id: true, ownerId: true },
@@ -100,6 +101,9 @@ export async function deleteOrganizationAction(
     await db
         .delete(OrganizationsTable)
         .where(eq(OrganizationsTable.id, organizationId));
+
+    revalidatePath("/");
+
     return { isError: false, deleted: true };
 }
 
@@ -150,27 +154,23 @@ export async function upsertUserOrganizationsAction(
     return { isError: false, updated: true };
 }
 
-export async function listOrganizationsForUserAction(
-    rawUserId: z.infer<typeof listOrganizationsForUserSchema>,
-): Promise<
-    TypedResponse<{ data: Array<{ id: string; nameEn: string; nameAr: string }> }>
+export type FullOrganization = Pick<Organization, "id" | "nameEn" | "nameAr" | "ownerId"> & { isCurrent: boolean | null };
+export async function listOrganizationsForUserAction(): Promise<
+    TypedResponse<{
+        data: Array<FullOrganization>;
+    }>
 > {
-    const { t } = await getT();
-    const parsed = listOrganizationsForUserSchema.safeParse(rawUserId);
-    if (!parsed.success) {
-        return {
-            isError: true,
-            message: t("authTranslations.error.badRequest"),
-        };
-    }
+    const { id: userId } = await getCurrentUser({ redirectIfNotFound: true });
 
-    const userId = parsed.data;
     const memberships = await db.query.OrganizationMembershipsTable.findMany({
         where: eq(OrganizationMembershipsTable.userId, userId),
         orderBy: [desc(OrganizationMembershipsTable.createdAt)],
         with: {
-            organization: { columns: { id: true, nameEn: true, nameAr: true } },
+            organization: {
+                columns: { id: true, nameEn: true, nameAr: true, ownerId: true },
+            },
         },
+        columns: { isCurrent: true },
     });
 
     return {
@@ -179,6 +179,62 @@ export async function listOrganizationsForUserAction(
             id: m.organization.id,
             nameEn: m.organization.nameEn,
             nameAr: m.organization.nameAr,
+            ownerId: m.organization.ownerId,
+            isCurrent: m.isCurrent,
         })),
     };
+}
+
+export async function setActiveOrganizationForUserAction(
+    organizationId: string,
+): Promise<TypedResponse<{ updated: true }>> {
+    const { id: userId } = await getCurrentUser({ redirectIfNotFound: true });
+    try {
+        await db.transaction(async (trx) => {
+            await trx
+                .update(OrganizationMembershipsTable)
+                .set({ isCurrent: false })
+                .where(eq(OrganizationMembershipsTable.userId, userId));
+            await trx
+                .update(OrganizationMembershipsTable)
+                .set({ isCurrent: true })
+                .where(
+                    and(
+                        eq(OrganizationMembershipsTable.userId, userId),
+                        eq(OrganizationMembershipsTable.organizationId, organizationId),
+                    ),
+                );
+        });
+
+        revalidatePath("/");
+
+        return { isError: false, updated: true };
+    } catch (error) {
+        return authError(error);
+    }
+}
+
+export async function getOrganizations(): Promise<OrganizationState> {
+    const { id: userId } = await getCurrentUser({ redirectIfNotFound: true });
+
+    const organizations = await db
+        .select({
+            id: OrganizationsTable.id,
+            nameEn: OrganizationsTable.nameEn,
+            nameAr: OrganizationsTable.nameAr,
+            ownerId: OrganizationsTable.ownerId,
+            isCurrent: OrganizationMembershipsTable.isCurrent,
+        })
+        .from(OrganizationMembershipsTable)
+        .innerJoin(OrganizationsTable, eq(OrganizationMembershipsTable.organizationId, OrganizationsTable.id))
+        .where(eq(OrganizationMembershipsTable.userId, userId));
+
+    const activeOrganization = organizations.find(org => org.isCurrent);
+    const hasActiveOrg = activeOrganization !== undefined;
+
+    if (!hasActiveOrg) {
+        return { hasActiveOrg: false, organizations, activeOrganization };
+    }
+
+    return { hasActiveOrg, activeOrganization, organizations };
 }

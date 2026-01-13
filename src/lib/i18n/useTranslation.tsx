@@ -21,10 +21,10 @@ const TranslationContext = createContext({
 
 export function TranslationProvider({
   defaultLocale = navigator.language,
-  fallbackLocale,
+  fallbackLocale = "en",
   children,
 }: {
-  fallbackLocale: string;
+  fallbackLocale?: string;
   defaultLocale?: string;
   children: ReactNode;
 }) {

@@ -3,8 +3,8 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useActionState } from "react";
 import { useForm } from "react-hook-form";
-import { toast } from "sonner";
 import type { z } from "zod";
+
 import { beginEmailChangeAction } from "@/auth/nextjs/actions";
 import { changeEmailSchema } from "@/auth/schemas";
 import { Button } from "@/components/ui/button";

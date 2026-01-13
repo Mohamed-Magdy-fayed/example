@@ -1,8 +1,8 @@
 import crypto from "crypto";
 import { z } from "zod";
 
-import type { Cookies } from "@/auth/config";
 import type { OAuthProvider } from "@/auth/tables";
+import type { Cookies } from "@/auth/types";
 import { env } from "@/env/server";
 import { createGithubOAuthClient } from "./github";
 import { createGoogleOAuthClient } from "./google";

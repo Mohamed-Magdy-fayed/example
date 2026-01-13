@@ -2,7 +2,7 @@
 
 import { type ComponentProps, type ReactNode, useTransition } from "react";
 import { toast } from "sonner";
-import type { TypedResponse } from "@/auth";
+import type { TypedResponse } from "@/auth/types";
 import {
   AlertDialog,
   AlertDialogAction,

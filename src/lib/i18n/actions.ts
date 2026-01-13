@@ -34,7 +34,7 @@ export async function getLocaleCookie() {
 export async function getT<const T extends Record<string, LanguageMessages>>(
     translations?: T,
 ) {
-    const locale = (await cookies()).get(LOCALE_COOKIE_NAME)?.value || "en";
+    const locale = await getLocaleCookie();
     return {
         ...createI18n(translations || mainTranslations, locale, "en"),
         locale,

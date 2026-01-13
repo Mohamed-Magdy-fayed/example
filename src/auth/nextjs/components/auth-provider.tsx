@@ -1,40 +1,10 @@
 "use client";
 
-import { eq } from "drizzle-orm";
 import { createContext, type ReactNode, useContext } from "react";
 
-import { listPasskeys } from "@/auth/core/services";
-import { getCurrentUser } from "@/auth/nextjs/currentUser";
-import { UserCredentialsTable } from "@/auth/tables";
-import { db } from "@/server/db";
+import type { getAuth } from "@/auth/nextjs/actions";
 
-type AuthContextValue = Awaited<ReturnType<typeof loadAppContext>>;
-
-export async function loadAppContext() {
-	const fullUser = await getCurrentUser({
-		redirectIfNotFound: true,
-		withFullUser: true,
-	});
-	const [passkeys, credentials] = await Promise.all([
-		listPasskeys(fullUser.id),
-		db.query.UserCredentialsTable.findFirst({
-			columns: { userId: true },
-			where: eq(UserCredentialsTable.userId, fullUser.id),
-		}),
-	]);
-
-	const profileName = fullUser.name ?? "--";
-	const hasPassword = credentials != null;
-	const emailVerified = fullUser.emailVerified != null;
-
-	return {
-		fullUser,
-		passkeys,
-		profileName,
-		hasPassword,
-		emailVerified,
-	};
-}
+type AuthContextValue = Awaited<ReturnType<typeof getAuth>>;
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 type AuthProviderProps = { value: AuthContextValue; children: ReactNode };

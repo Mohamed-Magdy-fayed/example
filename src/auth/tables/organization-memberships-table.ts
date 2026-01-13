@@ -1,5 +1,6 @@
 import { relations } from "drizzle-orm";
 import {
+	boolean,
 	pgTable,
 	primaryKey,
 	uuid,
@@ -10,6 +11,7 @@ import { createdAt, updatedAt } from "./schema-helpers";
 export const OrganizationMembershipsTable = pgTable(
 	"organization_memberships",
 	{
+		isCurrent: boolean(),
 		organizationId: uuid()
 			.notNull()
 			.references(() => OrganizationsTable.id, { onDelete: "cascade" }),

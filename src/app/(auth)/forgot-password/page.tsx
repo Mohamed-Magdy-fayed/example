@@ -1,6 +1,6 @@
 import Image from "next/image";
 
-import { ForgotPasswordForm } from "@/auth/nextjs/components/forgot-password-form";
+// import { ForgotPasswordForm } from "@/auth/nextjs/components/forgot-password-form";
 import { Card, CardContent } from "@/components/ui/card";
 import { getT } from "@/lib/i18n/actions";
 
@@ -13,7 +13,7 @@ export default async function ForgotPasswordPage() {
                 <div className="flex flex-col gap-6">
                     <Card className="overflow-hidden p-0">
                         <CardContent className="grid p-0 md:grid-cols-2">
-                            <ForgotPasswordForm />
+                            {/* <ForgotPasswordForm /> */}
                             <div className="relative hidden bg-muted md:block">
                                 <Image
                                     alt={t("authTranslations.signIn.imageAlt")}

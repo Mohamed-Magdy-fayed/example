@@ -3,7 +3,7 @@ import "server-only";
 import { render } from "@react-email/render";
 import * as React from "react";
 
-import type { SendEmailVerificationEmail } from "@/auth";
+import type { SendEmailVerificationEmail } from "@/auth/types";
 import { getT } from "@/lib/i18n/actions";
 
 import { sendMail } from "./mailer";

@@ -117,7 +117,3 @@ export const createOrganizationSchema = z.object({
 	nameEn: z.string(),
 	nameAr: z.string(),
 });
-
-export const setActiveOrganizationSchema = z.object({
-	organizationId: z.uuid("authTranslations.org.validation.invalidOrganization"),
-});

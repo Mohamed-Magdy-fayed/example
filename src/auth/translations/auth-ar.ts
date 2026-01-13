@@ -247,6 +247,9 @@ export default {
                 success: {
                     changeRequested: "تحقق من بريدك الجديد للحصول على رابط التفعيل.",
                 },
+                checkInbox: "تحقق من بريدك للحصول على رمز التحقق.",
+                description:
+                    "قم بتغيير عنوان بريدك الإلكتروني. سيتم إرسال رابط التحقق إلى العنوان الجديد.",
                 current: "البريد الحالي:",
                 newLabel: "بريد إلكتروني جديد",
                 confirmLabel: "تأكيد البريد الجديد",
@@ -319,40 +322,48 @@ export default {
         },
         org: {
             validation: {
-                nameRequired: "اسم المؤسسة مطلوب",
-                nameTooLong: "اسم المؤسسة طويل جداً",
-                invalidOrganization: "مؤسسة غير صالحة",
+                nameRequired: "اسم الفرع مطلوب",
+                nameTooLong: "اسم الفرع طويل جداً",
+                invalidOrganization: "فرع غير صالحة",
+            },
+            manage: {
+                title: "إدارة الفرع",
             },
             create: {
-                nameLabel: "اسم المؤسسة",
+                nameLabel: "اسم الفرع",
                 namePlaceholder: "Acme Inc.",
                 descriptionLabel: "الوصف",
                 descriptionPlaceholder: "وصف اختياري",
-                submit: "إنشاء مؤسسة",
+                submit: "إنشاء فرع",
                 submitting: "جارٍ الإنشاء...",
+                title: "إنشاء فرع جديد",
             },
             actions: {
+                setActiveOrganization: {
+                    success: "تم تعيين الفرع الحالية",
+                    error: "تعذر تعيين الفرع الحالية",
+                },
                 createOrganization: {
-                    success: "تم إنشاء المؤسسة",
-                    error: "تعذر إنشاء المؤسسة",
+                    success: "تم إنشاء الفرع",
+                    error: "تعذر إنشاء الفرع",
                 },
                 deleteOrganization: {
-                    notFound: "المؤسسة غير موجودة",
-                    ownerOnly: "فقط المنشئ يمكنه حذف المؤسسة",
-                    success: "تم حذف المؤسسة",
+                    notFound: "الفرع غير موجودة",
+                    ownerOnly: "فقط المنشئ يمكنه حذف الفرع",
+                    success: "تم حذف الفرع",
                 },
                 common: {
-                    noOrgAccess: "ليس لديك صلاحية لهذه المؤسسة",
-                },
-                setActiveOrganization: {
-                    success: "تم تعيين المؤسسة الحالية",
+                    noOrgAccess: "ليس لديك صلاحية لهذه الفرع",
                 },
                 members: {
                     update: "تم تحديث العضويات",
                 },
             },
             switcher: {
-                empty: "لا توجد مؤسسات بعد.",
+                add: "إضافة فرع",
+                select: "اختر الفرع",
+                empty: "قم بإنشاء فرع",
+                manage: "إدارة الفروع",
                 activeBadge: "نشط",
                 current: "الحالي",
                 setActive: "تعيين كافتراضي",

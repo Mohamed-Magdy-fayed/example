@@ -2,10 +2,11 @@ import "./globals.css";
 
 import type { Metadata } from "next";
 import { Figtree, Geist } from "next/font/google";
+import Providers from "@/app/providers";
+import { getLocaleCookie } from "@/lib/i18n/actions";
 import { cn } from "@/lib/utils";
-import { TRPCReactProvider } from "@/trpc/react";
 
-const figtree = Figtree({subsets:['latin'],variable:'--font-sans'});
+const figtree = Figtree({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
 	title: "Gateling Example",
@@ -18,13 +19,20 @@ const geist = Geist({
 	variable: "--font-geist-sans",
 });
 
-export default function RootLayout({
+export default async function RootLayout({
 	children,
 }: Readonly<{ children: React.ReactNode }>) {
+	const locale = await getLocaleCookie();
+
 	return (
-		<html className={cn("dark", geist.variable, figtree.variable)} lang="en">
+		<html
+			className={cn(geist.variable, figtree.variable)}
+			dir={locale === "ar" ? "rtl" : "ltr"}
+			lang={locale}
+			suppressHydrationWarning
+		>
 			<body>
-				<TRPCReactProvider>{children}</TRPCReactProvider>
+				<Providers>{children}</Providers>
 			</body>
 		</html>
 	);
