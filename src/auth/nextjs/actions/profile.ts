@@ -2,30 +2,27 @@
 
 import { eq } from "drizzle-orm";
 import { z } from "zod";
-
+import { authError } from "@/auth/core";
 import {
     comparePasswords,
     generateSalt,
     hashPassword,
 } from "@/auth/core/passwordHasher";
+import { getCurrentUser } from "@/auth/nextjs/currentUser";
+import { updateProfileSchema } from "@/auth/schemas";
 import { UserCredentialsTable, UsersTable } from "@/auth/tables";
 import type { PartialUser, TypedResponse } from "@/auth/types";
 import { getT } from "@/lib/i18n/actions";
 import { db } from "@/server/db";
 
-const updateProfileSchema = z.object({
-    userId: z.string().uuid(),
-    name: z.string().trim().min(1),
-});
-
 const changePasswordSchema = z.object({
-    userId: z.string().uuid(),
+    userId: z.uuid(),
     currentPassword: z.string().min(1),
     newPassword: z.string().min(6),
 });
 
 const createPasswordSchema = z.object({
-    userId: z.string().uuid(),
+    userId: z.uuid(),
     newPassword: z.string().min(6),
 });
 
@@ -34,42 +31,39 @@ export type PasswordChangeResult = {
     sessionUser?: Pick<PartialUser, "id" | "role">;
 };
 
-async function getSessionUserForRefresh(
-    userId: string,
-): Promise<Pick<PartialUser, "id" | "role"> | null> {
-    const user = await db.query.UsersTable.findFirst({
-        columns: { id: true, role: true },
-        where: eq(UsersTable.id, userId),
-    });
-    return user ? { id: user.id, role: user.role } : null;
-}
-
 export async function updateProfileNameAction(
     rawInput: z.infer<typeof updateProfileSchema>,
 ): Promise<TypedResponse<{ updated: true }>> {
-    const { t } = await getT();
-    const parsed = updateProfileSchema.safeParse(rawInput);
-    if (!parsed.success) {
-        return {
-            isError: true,
-            message: t("authTranslations.profile.error.invalidInput"),
-        };
+    try {
+        const { t } = await getT();
+        const { id: userId } = await getCurrentUser({ redirectIfNotFound: true });
+
+        const parsed = updateProfileSchema.safeParse(rawInput);
+        if (!parsed.success) {
+            return {
+                isError: true,
+                message: t("authTranslations.profile.error.invalidInput"),
+            };
+        }
+        const { phone, name } = parsed.data;
+
+        await db
+            .update(UsersTable)
+            .set({ name: name.trim(), phone: phone.trim() })
+            .where(eq(UsersTable.id, userId));
+
+        return { isError: false, updated: true };
+    } catch (error) {
+        return authError(error);
     }
-
-    const { userId, name } = parsed.data;
-
-    await db
-        .update(UsersTable)
-        .set({ name: name.trim() })
-        .where(eq(UsersTable.id, userId));
-
-    return { isError: false, updated: true };
 }
 
 export async function changePasswordAction(
     rawInput: z.infer<typeof changePasswordSchema>,
 ): Promise<TypedResponse<PasswordChangeResult>> {
     const { t } = await getT();
+    const sessionUser = await getCurrentUser({ redirectIfNotFound: true });
+
     const parsed = changePasswordSchema.safeParse(rawInput);
     if (!parsed.success) {
         return {
@@ -119,10 +113,10 @@ export async function changePasswordAction(
         })
         .where(eq(UserCredentialsTable.userId, userId));
 
-    const sessionUser = await getSessionUserForRefresh(userId);
     return {
         isError: false,
-        refreshSession: true, sessionUser: sessionUser ?? undefined,
+        refreshSession: true,
+        sessionUser: sessionUser ?? undefined,
     };
 }
 
@@ -130,6 +124,8 @@ export async function createPasswordAction(
     rawInput: z.infer<typeof createPasswordSchema>,
 ): Promise<TypedResponse<PasswordChangeResult>> {
     const { t } = await getT();
+    const sessionUser = await getCurrentUser({ redirectIfNotFound: true });
+
     const parsed = createPasswordSchema.safeParse(rawInput);
     if (!parsed.success) {
         return {
@@ -164,10 +160,10 @@ export async function createPasswordAction(
         lastChangedAt: now,
     });
 
-    const sessionUser = await getSessionUserForRefresh(userId);
 
     return {
         isError: false,
-        refreshSession: true, sessionUser: sessionUser ?? undefined,
+        refreshSession: true,
+        sessionUser: sessionUser ?? undefined,
     };
 }

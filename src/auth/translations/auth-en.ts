@@ -235,6 +235,8 @@ export default {
             },
         },
         profile: {
+            title: "Profile Settings",
+            description: "Manage your account profile information",
             error: {
                 invalidInput: "Invalid input",
             },
@@ -262,25 +264,13 @@ export default {
                 sending: "Sending...",
                 submit: "Send verification",
             },
-            displayName: {
-                label: "Display name",
+            name: {
+                label: "Name",
                 placeholder: "Your name",
             },
-            givenName: {
-                label: "Given name",
-                placeholder: "First name",
-            },
-            familyName: {
-                label: "Family name",
-                placeholder: "Last name",
-            },
-            locale: {
-                label: "Locale",
-                placeholder: "en",
-            },
-            timezone: {
-                label: "Timezone",
-                placeholder: "UTC",
+            phone: {
+                label: "Phone Number",
+                placeholder: "Your phone number",
             },
             password: {
                 currentLabel: "Current password",

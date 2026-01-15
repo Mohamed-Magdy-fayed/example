@@ -231,6 +231,8 @@ export default {
             },
         },
         profile: {
+            title: "إعدادات الملف الشخصي",
+            description: "إدارة معلومات ملف حسابك الشخصي",
             error: {
                 invalidInput: "بيانات غير صالحة",
             },
@@ -257,25 +259,13 @@ export default {
                 sending: "جارٍ الإرسال...",
                 submit: "إرسال التحقق",
             },
-            displayName: {
-                label: "اسم العرض",
+            name: {
+                label: "الاسم",
                 placeholder: "اسمك",
             },
-            givenName: {
-                label: "الاسم الأول",
-                placeholder: "الاسم الأول",
-            },
-            familyName: {
-                label: "اسم العائلة",
-                placeholder: "اسم العائلة",
-            },
-            locale: {
-                label: "اللغة",
-                placeholder: "ar",
-            },
-            timezone: {
-                label: "المنطقة الزمنية",
-                placeholder: "UTC",
+            phone: {
+                label: "رقم الهاتف",
+                placeholder: "رقم هاتفك",
             },
             password: {
                 currentLabel: "كلمة المرور الحالية",

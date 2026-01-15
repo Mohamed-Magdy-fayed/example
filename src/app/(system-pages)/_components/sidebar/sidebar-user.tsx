@@ -1,13 +1,21 @@
 "use client";
 
 import { DropdownMenuGroup } from "@radix-ui/react-dropdown-menu";
-import { ChevronsUpDown, LanguagesIcon, LogOut, MoonIcon, SunIcon } from "lucide-react";
+import {
+    ChevronsUpDown,
+    LanguagesIcon,
+    LogOut,
+    MoonIcon,
+    SunIcon,
+    UserIcon,
+} from "lucide-react";
 import { useTheme } from "next-themes";
-import { startTransition } from "react";
+import { startTransition, useState } from "react";
 
 import { UserCard } from "@/app/(system-pages)/_components/sidebar/user-card";
 import { signOutAction } from "@/auth/nextjs/actions";
 import { useAuth } from "@/auth/nextjs/components/auth-provider";
+import { ProfileForm } from "@/auth/nextjs/components/profile-form";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -16,6 +24,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { ResponsiveDialog } from "@/components/ui/responsive-dialog";
 import {
     SidebarMenu,
     SidebarMenuButton,
@@ -31,12 +40,20 @@ export function SidebarUser() {
     const { t, setLocale, locale } = useTranslation();
     const { theme, setTheme } = useTheme();
 
+    const [openDialog, setOpenDialog] = useState<"profile" | undefined>();
+
     const { isAuthenticated } = useAuth();
     if (!isAuthenticated) return <Skeleton className="h-12 w-full" />;
 
     return (
         <SidebarMenu>
             <SidebarMenuItem>
+                <ResponsiveDialog
+                    onOpenChange={(open) => setOpenDialog(open ? "profile" : undefined)}
+                    open={openDialog === "profile"}
+                >
+                    <ProfileForm callback={() => setOpenDialog(undefined)} />
+                </ResponsiveDialog>
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                         <SidebarMenuButton
@@ -56,6 +73,13 @@ export function SidebarUser() {
                         <DropdownMenuLabel className="p-0 font-normal">
                             <UserCard />
                         </DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuGroup>
+                            <DropdownMenuItem onSelect={() => setOpenDialog("profile")}>
+                                <UserIcon />
+                                {t("authTranslations.profile.title")}
+                            </DropdownMenuItem>
+                        </DropdownMenuGroup>
                         <DropdownMenuSeparator />
                         <DropdownMenuGroup>
                             <DropdownMenuItem
