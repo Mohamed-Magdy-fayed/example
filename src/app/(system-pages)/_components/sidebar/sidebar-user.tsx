@@ -5,16 +5,23 @@ import {
     ChevronsUpDown,
     LanguagesIcon,
     LogOut,
+    MailIcon,
     MoonIcon,
+    ShieldBanIcon,
     SunIcon,
     UserIcon,
 } from "lucide-react";
 import { useTheme } from "next-themes";
-import { startTransition, useState } from "react";
+import { Activity, startTransition, useState } from "react";
 
 import { UserCard } from "@/app/(system-pages)/_components/sidebar/user-card";
 import { signOutAction } from "@/auth/nextjs/actions";
 import { useAuth } from "@/auth/nextjs/components/auth-provider";
+import { ChangeEmailForm } from "@/auth/nextjs/components/change-email-form";
+import { ChangePasswordForm } from "@/auth/nextjs/components/change-password-form";
+import { EmailVerificationNotice } from "@/auth/nextjs/components/email-verification-notice";
+import { OAuthConnections } from "@/auth/nextjs/components/oauth-connections";
+import { PasskeyManager } from "@/auth/nextjs/components/passkey-manager";
 import { ProfileForm } from "@/auth/nextjs/components/profile-form";
 import {
     DropdownMenu,
@@ -32,17 +39,19 @@ import {
     useSidebar,
 } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Swap, SwapOff, SwapOn } from "@/components/ui/swap";
+import { Status, StatusIndicator } from "@/components/ui/status";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 
 export function SidebarUser() {
     const { isMobile } = useSidebar();
     const { t, setLocale, locale } = useTranslation();
     const { theme, setTheme } = useTheme();
+    const { isAuthenticated, session } = useAuth();
 
-    const [openDialog, setOpenDialog] = useState<"profile" | undefined>();
+    const [openDialog, setOpenDialog] = useState<
+        "profile" | "password" | "email" | "oauth" | "passkeys" | undefined
+    >();
 
-    const { isAuthenticated } = useAuth();
     if (!isAuthenticated) return <Skeleton className="h-12 w-full" />;
 
     return (
@@ -53,6 +62,40 @@ export function SidebarUser() {
                     open={openDialog === "profile"}
                 >
                     <ProfileForm callback={() => setOpenDialog(undefined)} />
+                </ResponsiveDialog>
+                <ResponsiveDialog
+                    onOpenChange={(open) => setOpenDialog(open ? "email" : undefined)}
+                    open={openDialog === "email"}
+                >
+                    <div className="flex flex-col gap-4">
+                        <EmailVerificationNotice
+                            isVerified={!!session.user.emailVerified}
+                        />
+                        <Activity mode={session.user.emailVerified ? "visible" : "hidden"}>
+                            <ChangeEmailForm />
+                        </Activity>
+                    </div>
+                </ResponsiveDialog>
+                <ResponsiveDialog
+                    onOpenChange={(open) => setOpenDialog(open ? "password" : undefined)}
+                    open={openDialog === "password"}
+                >
+                    <ChangePasswordForm
+                        callback={() => setOpenDialog(undefined)}
+                        isCreate={!session?.hasPassword}
+                    />
+                </ResponsiveDialog>
+                <ResponsiveDialog
+                    onOpenChange={(open) => setOpenDialog(open ? "oauth" : undefined)}
+                    open={openDialog === "oauth"}
+                >
+                    <OAuthConnections />
+                </ResponsiveDialog>
+                <ResponsiveDialog
+                    onOpenChange={(open) => setOpenDialog(open ? "passkeys" : undefined)}
+                    open={openDialog === "passkeys"}
+                >
+                    <PasskeyManager />
                 </ResponsiveDialog>
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -79,24 +122,48 @@ export function SidebarUser() {
                                 <UserIcon />
                                 {t("authTranslations.profile.title")}
                             </DropdownMenuItem>
+                            <DropdownMenuItem onSelect={() => setOpenDialog("email")}>
+                                <MailIcon />
+                                {!session.user.emailVerified
+                                    ? t("authTranslations.emailVerification.verifyEmail")
+                                    : t("authTranslations.profile.email.change")}
+                                {!session.user.emailVerified && (
+                                    <Status className="ms-auto" variant="warning">
+                                        <StatusIndicator />
+                                    </Status>
+                                )}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onSelect={() => setOpenDialog("password")}>
+                                <ShieldBanIcon />
+                                {t("authTranslations.profile.password.createOrChange", {
+                                    isChange: session?.hasPassword ? "true" : "false",
+                                })}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onSelect={() => setOpenDialog("oauth")}>
+                                <UserIcon />
+                                {t("authTranslations.oauth.manage")}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onSelect={() => setOpenDialog("passkeys")}>
+                                <UserIcon />
+                                {t("authTranslations.passkeys.manage")}
+                            </DropdownMenuItem>
                         </DropdownMenuGroup>
                         <DropdownMenuSeparator />
                         <DropdownMenuGroup>
                             <DropdownMenuItem
-                                onSelect={() => setTheme(theme === "light" ? "dark" : "light")}
+                                onSelect={(e) => {
+                                    e.preventDefault();
+                                    setTheme(theme === "dark" ? "light" : "dark");
+                                }}
                             >
-                                <Swap animation="rotate" swapped={theme === "dark"}>
-                                    <SwapOn>
-                                        <MoonIcon />
-                                    </SwapOn>
-                                    <SwapOff>
-                                        <SunIcon />
-                                    </SwapOff>
-                                </Swap>
+                                {theme === "dark" ? <MoonIcon /> : <SunIcon />}
                                 {t("themeToggle")}
                             </DropdownMenuItem>
                             <DropdownMenuItem
-                                onSelect={() => setLocale(locale === "en" ? "ar" : "en")}
+                                onSelect={(e) => {
+                                    e.preventDefault();
+                                    setLocale(locale === "en" ? "ar" : "en");
+                                }}
                             >
                                 <LanguagesIcon />
                                 {t("opposite")}

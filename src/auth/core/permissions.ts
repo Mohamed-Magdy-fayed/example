@@ -33,14 +33,18 @@ export const unrestricted = {
   delete: true,
 };
 
-export const screenKeys = ["dashboard", ""] as const;
+export const screenKeys = ["dashboard", "my-account"] as const;
 export type ScreenKey = (typeof screenKeys)[number];
 
 export const rolesPermissions = {
   admin: {
     users: unrestricted,
+    screens: unrestricted,
   },
   user: {
+    screens: {
+      view: (_, { screenKey }) => screenKey === "my-account",
+    },
     users: {
       view: (user: PartialUser, data: PartialUser) => user.id === data.id,
       update: (user: PartialUser, data: PartialUser) => user.id === data.id,

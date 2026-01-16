@@ -14,10 +14,13 @@ import {
     verifyRegistrationResponse,
 } from "@simplewebauthn/server";
 import { and, desc, eq } from "drizzle-orm";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import { z } from "zod";
-
+import { createSession } from "@/auth/core";
 import { normalizeEmail } from "@/auth/core/helpers";
 import { hashTokenValue } from "@/auth/core/token";
+import { getCurrentUser } from "@/auth/nextjs/currentUser";
 import {
     BiometricCredentialsTable,
     UsersTable,
@@ -39,7 +42,7 @@ const EXPECTED_ORIGIN = new URL(env.BASE_URL).origin;
 
 const emailSchema = z.email();
 const userIdSchema = z.uuid();
-const deletePasskeySchema = z.object({ id: z.uuid(), userId: userIdSchema });
+const deletePasskeySchema = z.object({ passkeyId: z.uuid() });
 const authResponseSchema = z.custom<AuthenticationResponseJSON>();
 const registrationResponseSchema = z.custom<RegistrationResponseJSON>();
 
@@ -158,7 +161,10 @@ export async function beginPasskeyAuthenticationAction(
     const { t } = await getT();
     const parsedEmail = emailSchema.safeParse(rawEmail);
     if (!parsedEmail.success) {
-        return { isError: true, message: t("authTranslations.passkeys.auth.error.userNotFound") };
+        return {
+            isError: true,
+            message: t("authTranslations.passkeys.auth.error.userNotFound"),
+        };
     }
 
     const normalizedEmail = normalizeEmail(parsedEmail.data);
@@ -227,14 +233,16 @@ export async function beginPasskeyAuthenticationAction(
     return { isError: false, options, email: user.email };
 }
 
-export async function beginPasskeyRegistrationAction(
-    rawUserId: z.infer<typeof userIdSchema>,
-): Promise<RegistrationOptionsResult> {
+export async function beginPasskeyRegistrationAction(): Promise<RegistrationOptionsResult> {
     const { t } = await getT();
+    const { id: rawUserId } = await getCurrentUser({ redirectIfNotFound: true });
 
     const parsedUserId = userIdSchema.safeParse(rawUserId);
     if (!parsedUserId.success) {
-        return { isError: true, message: t("authTranslations.passkeys.auth.error.userNotFound") };
+        return {
+            isError: true,
+            message: t("authTranslations.passkeys.auth.error.userNotFound"),
+        };
     }
 
     const user = await db.query.UsersTable.findFirst({
@@ -437,19 +445,19 @@ export async function completePasskeyAuthenticationAction(
         .set({ lastSignInAt: new Date() })
         .where(eq(UsersTable.id, user.id));
 
-    return {
-        isError: false,
-        id: user.id, role: user.role,
-    };
+    await createSession(user, await cookies());
+
+    redirect("/");
 }
 
 export async function completePasskeyRegistrationAction(
     rawAttestation: z.infer<typeof registrationResponseSchema>,
-    rawUserId: z.infer<typeof userIdSchema>,
 ): Promise<TypedResponse<{ userId: string }>> {
     const { t } = await getT();
+    const { id: rawUserId } = await getCurrentUser({ redirectIfNotFound: true });
 
-    const parsedAttestation = registrationResponseSchema.safeParse(rawAttestation);
+    const parsedAttestation =
+        registrationResponseSchema.safeParse(rawAttestation);
     const parsedUserId = userIdSchema.safeParse(rawUserId);
     if (!parsedAttestation.success || !parsedUserId.success) {
         return {
@@ -532,10 +540,11 @@ export async function completePasskeyRegistrationAction(
     };
 }
 
-export async function listPasskeysAction(
-    rawUserId: z.infer<typeof userIdSchema>,
-): Promise<TypedResponse<{ data: PasskeyListItem[] }>> {
+export async function listPasskeysAction(): Promise<
+    TypedResponse<{ data: PasskeyListItem[] }>
+> {
     const { t } = await getT();
+    const { id: rawUserId } = await getCurrentUser({ redirectIfNotFound: true });
     const parsed = userIdSchema.safeParse(rawUserId);
     if (!parsed.success) {
         return {
@@ -577,6 +586,7 @@ export async function deletePasskeyAction(
     rawInput: z.infer<typeof deletePasskeySchema>,
 ): Promise<TypedResponse<{ message: string }>> {
     const { t } = await getT();
+    const { id: userId } = await getCurrentUser({ redirectIfNotFound: true });
 
     const parsed = deletePasskeySchema.safeParse(rawInput);
 
@@ -587,11 +597,11 @@ export async function deletePasskeyAction(
         };
     }
 
-    const { id, userId } = parsed.data;
+    const { passkeyId } = parsed.data;
 
     const credential = await db.query.BiometricCredentialsTable.findFirst({
         columns: { id: true, userId: true },
-        where: eq(BiometricCredentialsTable.id, id),
+        where: eq(BiometricCredentialsTable.id, passkeyId),
     });
 
     if (!credential || credential.userId !== userId) {

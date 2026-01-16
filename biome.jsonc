@@ -23,6 +23,9 @@
 	"linter": {
 		"enabled": true,
 		"rules": {
+			"correctness": {
+				"useExhaustiveDependencies": "off"
+			},
 			"suspicious": "off",
 			"complexity": {
 				"noBannedTypes": "off"
@@ -33,7 +36,11 @@
 					"level": "warn",
 					"fix": "safe",
 					"options": {
-						"functions": ["clsx", "cva", "cn"]
+						"functions": [
+							"clsx",
+							"cva",
+							"cn"
+						]
 					}
 				}
 			}

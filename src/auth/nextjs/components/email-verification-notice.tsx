@@ -1,77 +1,66 @@
-// "use client";
+"use client";
 
-// import { useState, useTransition } from "react";
+import { useTransition } from "react";
+import { toast } from "sonner";
 
-// import { Button } from "@/components/ui/button";
-// import { useTranslation } from "@/lib/i18n/useTranslation";
-// import { api } from "@/trpc/react";
+import { beginEmailVerificationAction } from "@/auth/nextjs/actions";
+import { useAuth } from "@/auth/nextjs/components/auth-provider";
+import { Button } from "@/components/ui/button";
+import { Status, StatusIndicator, StatusLabel } from "@/components/ui/status";
+import { H3, P } from "@/components/ui/typography";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
-// type EmailVerificationNoticeProps = { isVerified: boolean };
+export function EmailVerificationNotice({
+    isVerified,
+}: {
+    isVerified?: boolean;
+}) {
+    const { t } = useTranslation();
+    const { session } = useAuth();
+    const [isPending, startTransition] = useTransition();
 
-// type NoticeStatus = { success: boolean; message: string };
+    if (isVerified) {
+        return (
+            <Status variant="success">
+                <StatusIndicator />
+                <StatusLabel>
+                    {t("authTranslations.emailVerification.alreadyVerifiedNote")}
+                </StatusLabel>
+            </Status>
+        );
+    }
 
-// export function EmailVerificationNotice({
-// 	isVerified,
-// }: EmailVerificationNoticeProps) {
-// 	const { t } = useTranslation();
-// 	const [status, setStatus] = useState<NoticeStatus | null>(null);
-// 	const [isPending, startTransition] = useTransition();
-// 	const sendVerification = api.auth.email.sendVerification.useMutation();
+    return (
+        <div>
+            <H3>{t("authTranslations.emailVerification.notice.title")}</H3>
+            <P>{session?.user.email}</P>
+            <Status variant="error">
+                <StatusIndicator />
+                <StatusLabel>
+                    {t("authTranslations.emailVerification.heading")}
+                </StatusLabel>
+            </Status>
+            <div className="flex items-center gap-4 pt-4">
+                <Button
+                    disabled={isPending}
+                    onClick={() => {
+                        startTransition(async () => {
+                            const res = await beginEmailVerificationAction();
+                            if (res.isError) {
+                                toast.error(res.message);
+                            }
 
-// 	if (isVerified) {
-// 		return (
-// 			<p className="text-muted-foreground text-sm">
-// 				{t("authTranslations.emailVerification.alreadyVerifiedNote")}
-// 			</p>
-// 		);
-// 	}
-
-// 	return (
-// 		<div className="rounded-md border border-amber-300 bg-amber-50 p-4 text-amber-900 text-sm shadow-sm dark:border-amber-800 dark:bg-amber-950 dark:text-amber-100">
-// 			<p className="font-medium">
-// 				{t("authTranslations.emailVerification.notice.title")}
-// 			</p>
-// 			<p className="mt-1">
-// 				{t("authTranslations.emailVerification.notice.description")}
-// 			</p>
-// 			{status && (
-// 				<p
-// 					className={`mt-2 ${status.success ? "text-emerald-700 dark:text-emerald-400" : "text-destructive dark:text-red-400"}`}
-// 				>
-// 					{status.message}
-// 				</p>
-// 			)}
-// 			<Button
-// 				className="mt-3"
-// 				disabled={isPending}
-// 				onClick={() => {
-// 					startTransition(async () => {
-// 						setStatus(null);
-// 						try {
-// 							const origin =
-// 								typeof window !== "undefined" ? window.location.origin : "";
-// 							await sendVerification.mutateAsync({ origin });
-// 							setStatus({
-// 								success: true,
-// 								message: t("authTranslations.emailVerification.sent"),
-// 							});
-// 						} catch (error) {
-// 							const message =
-// 								error instanceof Error && error.message
-// 									? error.message
-// 									: t("authTranslations.emailVerification.error.sendFailed");
-// 							setStatus({ success: false, message });
-// 						}
-// 					});
-// 				}}
-// 				size="sm"
-// 				type="button"
-// 				variant="outline"
-// 			>
-// 				{isPending
-// 					? t("authTranslations.emailVerification.notice.sending")
-// 					: t("authTranslations.emailVerification.notice.sendButton")}
-// 			</Button>
-// 		</div>
-// 	);
-// }
+                            toast.success(t("authTranslations.emailVerification.sent"));
+                        });
+                    }}
+                    type="button"
+                >
+                    {isPending
+                        ? t("authTranslations.emailVerification.notice.sending")
+                        : t("authTranslations.emailVerification.notice.sendButton")}
+                </Button>
+                <Button variant="destructive">{t("common.cancel")}</Button>
+            </div>
+        </div>
+    );
+}

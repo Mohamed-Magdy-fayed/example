@@ -63,17 +63,24 @@ export async function GET(
 		await createSession(user, cookieJar);
 	} catch (error) {
 		console.error(error);
+
+		const message =
+			error instanceof Error || error instanceof DrizzleError
+				? error.message || "Failed to connect. Please try again."
+				: "Failed to connect. Please try again.";
+
+		// store error in a cookie so client pages (including pages behind auth) can display it
+		try {
+			cookieJar.set("oauthError", message);
+		} catch { }
+
 		if (error instanceof Error) {
 			redirect(
-				`/sign-in?oauthError=${encodeURIComponent(
-					error.message || "Failed to connect. Please try again.",
-				)}`,
+				`/sign-in?oauthError=${encodeURIComponent(message)}`,
 			);
 		} else if (error instanceof DrizzleError) {
 			redirect(
-				`/sign-in?oauthError=${encodeURIComponent(
-					error.message || "Failed to connect. Please try again.",
-				)}`,
+				`/sign-in?oauthError=${encodeURIComponent(message)}`,
 			);
 		}
 	}

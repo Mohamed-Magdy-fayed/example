@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 import type { z } from "zod";
 
 import { beginEmailChangeAction } from "@/auth/nextjs/actions";
+import { useAuth } from "@/auth/nextjs/components/auth-provider";
 import { changeEmailSchema } from "@/auth/schemas";
 import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
@@ -22,8 +23,11 @@ import { useTranslation } from "@/lib/i18n/useTranslation";
 
 type FormValues = z.infer<typeof changeEmailSchema>;
 
-export function ChangeEmailForm({ currentEmail }: { currentEmail: string }) {
+export function ChangeEmailForm() {
 	const { t } = useTranslation();
+	const { session } = useAuth();
+
+	const currentEmail = session?.user.email;
 
 	const [state, formAction, pending] = useActionState(
 		async (_prevState: unknown, formData: FormData) =>
@@ -39,11 +43,15 @@ export function ChangeEmailForm({ currentEmail }: { currentEmail: string }) {
 	return (
 		<form action={formAction} className="space-y-6">
 			<p>
-				{state?.isError ? state.message : state?.sent ? t("authTranslations.profile.email.checkInbox") : t("authTranslations.profile.email.description")}
+				{state?.isError
+					? state.message
+					: state?.sent
+						? t("authTranslations.profile.email.checkInbox")
+						: t("authTranslations.profile.email.description")}
 			</p>
 			<FieldSet className="space-y-6" disabled={pending}>
 				<FieldGroup>
-					<FieldDescription className="text-muted-foreground text-sm">
+					<FieldDescription className="text-start text-muted-foreground text-sm">
 						{t("authTranslations.profile.email.current")} {currentEmail}
 					</FieldDescription>
 					<Field>

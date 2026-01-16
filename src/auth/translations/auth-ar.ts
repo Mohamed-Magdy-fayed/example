@@ -1,7 +1,8 @@
-import type { LanguageMessages } from "@/lib/i18n/lib";
+import { dt, type LanguageMessages } from "@/lib/i18n/lib";
 
 export default {
     authTranslations: {
+        accessDenied: "تم رفض الوصول",
         required: "هذا الحقل مطلوب",
         emailMismatch: "عناوين البريد الإلكتروني غير متطابقة",
         validation: {
@@ -78,6 +79,7 @@ export default {
             submitting: "جارٍ إنشاء الحساب...",
         },
         oauth: {
+            manage: "ادارة حسابات OAuth",
             providerUnavailable: "تسجيل الدخول عبر {provider} غير متاح حالياً.",
             providerButton: "متابعة عبر {provider}",
             error: {
@@ -135,6 +137,7 @@ export default {
             },
             registering: "جارٍ انتظار مفتاح المرور...",
             add: "إضافة مفتاح مرور",
+            manage: "إدارة مفاتيح المرور",
             settings: {
                 description: "سجل مفتاح مرور لتسجيل الدخول بدون كلمة مرور.",
             },
@@ -237,6 +240,7 @@ export default {
                 invalidInput: "بيانات غير صالحة",
             },
             email: {
+                change: "تغيير البريد الإلكتروني",
                 error: {
                     sameAddress: "استخدم بريداً إلكترونياً مختلفاً",
                     inUse: "البريد الإلكتروني مستخدم بالفعل",
@@ -268,6 +272,14 @@ export default {
                 placeholder: "رقم هاتفك",
             },
             password: {
+                createOrChange: dt("{isChange:enum}", {
+                    enum: {
+                        isChange: {
+                            true: "تغيير كلمة المرور",
+                            false: "إنشاء كلمة مرور",
+                        }
+                    }
+                }),
                 currentLabel: "كلمة المرور الحالية",
                 newLabel: "كلمة المرور الجديدة",
                 confirmLabel: "تأكيد كلمة المرور الجديدة",
@@ -280,6 +292,7 @@ export default {
             },
         },
         emailVerification: {
+            verifyEmail: "تحقق من بريدك الإلكتروني",
             heading: "التحقق من البريد الإلكتروني",
             description: {
                 success: "تم الآن التحقق من عنوان بريدك الإلكتروني.",

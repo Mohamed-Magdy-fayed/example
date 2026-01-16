@@ -1,13 +1,20 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { startAuthentication } from "@simplewebauthn/browser";
 import { ArrowLeftIcon, FingerprintIcon } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Activity, useActionState, useState } from "react";
+import { Activity, startTransition, useActionState, useState } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import type { z } from "zod";
-import { oAuthSignIn, signInAction } from "@/auth/nextjs/actions";
+import {
+	beginPasskeyAuthenticationAction,
+	completePasskeyAuthenticationAction,
+	oAuthSignIn,
+	signInAction,
+} from "@/auth/nextjs/actions";
 import { useOauthProviderIcon } from "@/auth/nextjs/components/useOauthProviderIcon";
 import { signInSchema } from "@/auth/schemas";
 import { type OAuthProvider, oAuthProviderValues } from "@/auth/tables";
@@ -39,55 +46,37 @@ export function SignInForm() {
 
 	const [state, action, isPending] = useActionState(signInAction, null);
 
-	// async function handlePasskeySignIn() {
-	// 	setError(undefined);
-	// 	setOauthError(undefined);
+	async function handlePasskeySignIn() {
+		const emailValid = await form.trigger("email");
+		if (!emailValid) {
+			return;
+		}
 
-	// 	const emailValid = await form.trigger("email");
-	// 	if (!emailValid) {
-	// 		return;
-	// 	}
+		const email = form.getValues("email");
+		if (!email) {
+			toast.error(t("authTranslations.passkeys.auth.error.emailRequired"));
+			return;
+		}
 
-	// 	const email = form.getValues("email");
-	// 	if (!email) {
-	// 		setError(t("authTranslations.passkeys.auth.error.emailRequired"));
-	// 		return;
-	// 	}
+		if (typeof window === "undefined" || !window.PublicKeyCredential) {
+			toast.error(t("authTranslations.passkeys.auth.error.unsupported"));
+			return;
+		}
 
-	// 	if (typeof window === "undefined" || !window.PublicKeyCredential) {
-	// 		setError(t("authTranslations.passkeys.auth.error.unsupported"));
-	// 		return;
-	// 	}
+		startTransition(async () => { });
+		const beginResult = await beginPasskeyAuthenticationAction(email);
 
-	// 	try {
-	// 		setIsPasskeyPending(true);
-	// 		const beginResult = await beginPasskey.mutateAsync({ email });
+		if (beginResult.isError) {
+			toast.error(beginResult.message);
+			return;
+		}
 
-	// 		const assertion = await startAuthentication({
-	// 			optionsJSON: beginResult.options as any,
-	// 		});
-	// 		await completePasskey.mutateAsync({
-	// 			email: beginResult.email,
-	// 			response: assertion,
-	// 		});
+		const assertion = await startAuthentication({
+			optionsJSON: beginResult.options as any,
+		});
 
-	// 		router.replace("/");
-	// 		router.refresh();
-	// 	} catch (caught) {
-	// 		if (
-	// 			caught instanceof DOMException &&
-	// 			(caught.name === "NotAllowedError" || caught.name === "AbortError")
-	// 		) {
-	// 			setError(t("authTranslations.passkeys.auth.error.cancelled"));
-	// 			return;
-	// 		}
-
-	// 		console.error("Passkey sign-in failed", caught);
-	// 		setError(t("authTranslations.passkeys.auth.error.generic"));
-	// 	} finally {
-	// 		setIsPasskeyPending(false);
-	// 	}
-	// }
+		await completePasskeyAuthenticationAction(email, assertion);
+	}
 
 	async function handleOAuthClick(provider: OAuthProvider) {
 		await oAuthSignIn(provider);
@@ -134,6 +123,15 @@ export function SignInForm() {
 					role="alert"
 				>
 					{searchParams.get("error")}
+				</FieldDescription>
+			)}
+			{searchParams.get("oauthError") != null && (
+				<FieldDescription
+					aria-live="assertive"
+					className="text-center text-destructive!"
+					role="alert"
+				>
+					{searchParams.get("oauthError")}
 				</FieldDescription>
 			)}
 
@@ -189,16 +187,15 @@ export function SignInForm() {
 				</Activity>
 				<Activity mode={isEmailStep ? "hidden" : "visible"}>
 					<Field className="grid gap-2">
-						<div className="flex items-center">
+						<div className="flex w-full items-center justify-between gap-2">
 							<FieldLabel htmlFor="password">
 								{t("authTranslations.signIn.passwordLabel")}
 							</FieldLabel>
-							<Link
-								className="ml-auto text-sm underline-offset-4 hover:underline"
-								href="/forgot-password"
-							>
-								{t("authTranslations.signIn.forgotPassword")}
-							</Link>
+							<Button asChild size="sm" variant="link">
+								<Link href="/forgot-password">
+									{t("authTranslations.signIn.forgotPassword")}
+								</Link>
+							</Button>
 						</div>
 						<Input
 							id="password"
@@ -230,9 +227,9 @@ export function SignInForm() {
 
 				<Button
 					disabled={isPasskeyPending || isPending}
-					// onClick={handlePasskeySignIn}
+					onClick={handlePasskeySignIn}
 					type="button"
-					variant="secondary"
+					variant="outline"
 				>
 					<FingerprintIcon />
 					{isPasskeyPending

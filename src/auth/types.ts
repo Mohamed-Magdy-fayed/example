@@ -18,7 +18,7 @@ export type AuthState =
     }
     | {
         isAuthenticated: true;
-        session: { user: User };
+        session: { user: User, hasPassword: boolean };
     };
 export type OrganizationState =
     | {

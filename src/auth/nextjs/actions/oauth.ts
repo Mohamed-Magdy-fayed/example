@@ -2,7 +2,7 @@
 
 import { and, eq, sql } from "drizzle-orm";
 import { z } from "zod";
-
+import { getCurrentUser } from "@/auth/nextjs/currentUser";
 import {
     type OAuthProvider,
     oAuthProviderValues,
@@ -13,22 +13,12 @@ import type { OAuthConnection, TypedResponse } from "@/auth/types";
 import { getT } from "@/lib/i18n/actions";
 import { db } from "@/server/db";
 
-const userIdSchema = z.uuid();
 const providerSchema = z.enum(oAuthProviderValues);
 
 export async function listOAuthConnectionsAction(
-    userIdRaw: z.infer<typeof userIdSchema>,
 ): Promise<TypedResponse<{ data: OAuthConnection[] }>> {
-    const { t } = await getT();
-    const parsed = userIdSchema.safeParse(userIdRaw);
-    if (!parsed.success) {
-        return {
-            isError: true,
-            message: t("authTranslations.error.badRequest"),
-        };
-    }
+    const { id: userId } = await getCurrentUser({ redirectIfNotFound: true });
 
-    const userId = parsed.data;
     const accounts = await db.query.UserOAuthAccountsTable.findMany({
         columns: { provider: true, providerAccountId: true, createdAt: true },
         where: eq(UserOAuthAccountsTable.userId, userId),
@@ -50,15 +40,13 @@ export async function listOAuthConnectionsAction(
     return { isError: false, data: result };
 }
 
-const disconnectOAuthAccountInputSchema = z.object({
-    userId: userIdSchema,
-    provider: providerSchema,
-});
 export async function disconnectOAuthAccountAction(
-    rawInput: z.infer<typeof disconnectOAuthAccountInputSchema>,
+    rawInput: z.infer<typeof providerSchema>,
 ): Promise<TypedResponse<{ disconnected: true }>> {
     const { t } = await getT();
-    const parsed = disconnectOAuthAccountInputSchema.safeParse(rawInput);
+    const { id: userId } = await getCurrentUser({ redirectIfNotFound: true });
+
+    const parsed = providerSchema.safeParse(rawInput);
 
     if (!parsed.success) {
         return {
@@ -67,7 +55,7 @@ export async function disconnectOAuthAccountAction(
         };
     }
 
-    const { userId, provider } = parsed.data;
+    const provider = parsed.data;
 
     const account = await db.query.UserOAuthAccountsTable.findFirst({
         columns: { providerAccountId: true },

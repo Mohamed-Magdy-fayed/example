@@ -2,7 +2,7 @@
 
 import { and, eq, ne } from "drizzle-orm";
 import { z } from "zod";
-
+import { comparePasswords } from "@/auth/core";
 import { normalizeEmail } from "@/auth/core/helpers";
 import { createTokenValue, hashTokenValue } from "@/auth/core/token";
 import { getCurrentUser } from "@/auth/nextjs/currentUser";
@@ -10,30 +10,18 @@ import {
     sendEmailChangeVerification,
     sendEmailVerificationEmail,
 } from "@/auth/nextjs/emails";
-import { UsersTable, UserTokensTable } from "@/auth/tables";
-import type {
-    SendEmailChangeVerificationEmail,
-    SendEmailVerificationEmail,
-    TypedResponse,
-} from "@/auth/types";
+import { changeEmailSchema } from "@/auth/schemas";
+import {
+    UserCredentialsTable,
+    UsersTable,
+    UserTokensTable,
+} from "@/auth/tables";
+import type { TypedResponse } from "@/auth/types";
 import { env } from "@/env/server";
 import { getT } from "@/lib/i18n/actions";
 import { db } from "@/server/db";
 
 const EMAIL_TOKEN_TTL_MS = 1000 * 60 * 60 * 24; // 24h
-
-const beginEmailVerificationSchema = z.object({
-    userId: z.string().min(1),
-    currentEmail: z.email(),
-    origin: z.url(),
-    userDisplayName: z.string().trim().optional().nullable(),
-});
-
-const beginEmailChangeSchema = z.object({
-    currentEmail: z.email(),
-    newEmail: z.email(),
-    userDisplayName: z.string().trim().optional().nullable(),
-});
 
 const verifyEmailTokenSchema = z.object({ token: z.string().min(1) });
 
@@ -44,37 +32,32 @@ type EmailTokenMetadata = {
     currentEmail?: unknown;
 };
 
-export async function beginEmailVerificationAction(
-    rawInput: z.infer<typeof beginEmailVerificationSchema>,
-    sendEmail: SendEmailVerificationEmail = sendEmailVerificationEmail,
-): Promise<TypedResponse<{ sent: true }>> {
+export async function beginEmailVerificationAction(): Promise<
+    TypedResponse<{ sent: true }>
+> {
     const { t } = await getT();
-    const parsed = beginEmailVerificationSchema.safeParse(rawInput);
-    if (!parsed.success) {
-        return {
-            isError: true,
-            message: t("authTranslations.error.badRequest"),
-        };
-    }
+    const { id, email, name } = await getCurrentUser({
+        redirectIfNotFound: true,
+        withFullUser: true,
+    });
 
-    const { userId, currentEmail, origin, userDisplayName } = parsed.data;
     const token = createTokenValue();
     const tokenHash = hashTokenValue(token);
     const expiresAt = new Date(Date.now() + EMAIL_TOKEN_TTL_MS);
-    const normalizedEmail = normalizeEmail(currentEmail);
+    const normalizedEmail = normalizeEmail(email);
 
     await db.transaction(async (trx) => {
         await trx
             .delete(UserTokensTable)
             .where(
                 and(
-                    eq(UserTokensTable.userId, userId),
+                    eq(UserTokensTable.userId, id),
                     eq(UserTokensTable.type, "email_verification"),
                 ),
             );
 
         await trx.insert(UserTokensTable).values({
-            userId,
+            userId: id,
             tokenHash,
             type: "email_verification",
             expiresAt,
@@ -82,12 +65,12 @@ export async function beginEmailVerificationAction(
         });
     });
 
-    const verificationUrl = `${origin.replace(/\/$/, "")}/verify-email?${new URLSearchParams({ token }).toString()}`;
+    const verificationUrl = `${env.BASE_URL}/verify-email?${new URLSearchParams({ token }).toString()}`;
 
     try {
-        await sendEmail({
-            to: currentEmail,
-            name: userDisplayName ?? undefined,
+        await sendEmailVerificationEmail({
+            to: email,
+            name: name,
             verificationUrl,
         });
     } catch {
@@ -102,10 +85,20 @@ export async function beginEmailVerificationAction(
 
 export async function beginEmailChangeAction(
     formData: FormData,
-    sendEmail: SendEmailChangeVerificationEmail = sendEmailChangeVerification,
 ): Promise<TypedResponse<{ sent: true }>> {
     const { t } = await getT();
-    const parsed = beginEmailChangeSchema.safeParse(formData.entries());
+    const {
+        email: currentEmail,
+        id: userId,
+        name,
+    } = await getCurrentUser({
+        redirectIfNotFound: true,
+        withFullUser: true,
+    });
+
+    const parsed = changeEmailSchema.safeParse(
+        Object.fromEntries(formData.entries()),
+    );
     if (!parsed.success) {
         return {
             isError: true,
@@ -113,8 +106,7 @@ export async function beginEmailChangeAction(
         };
     }
 
-    const { currentEmail, newEmail, userDisplayName } = parsed.data;
-    const { id: userId } = await getCurrentUser({ redirectIfNotFound: true });
+    const { newEmail, currentPassword } = parsed.data;
     const normalizedNewEmail = normalizeEmail(newEmail);
     const normalizedCurrentEmail = normalizeEmail(currentEmail);
 
@@ -135,6 +127,25 @@ export async function beginEmailChangeAction(
             isError: true,
             message: t("authTranslations.profile.email.error.inUse"),
         };
+    }
+
+    const userCredentials = await db.query.UserCredentialsTable.findFirst({
+        where: eq(UserCredentialsTable.userId, userId),
+        columns: { passwordHash: true, passwordSalt: true },
+    });
+
+    if (userCredentials) {
+        const isPasswordValid = await comparePasswords({
+            hashedPassword: userCredentials.passwordHash,
+            salt: userCredentials.passwordSalt,
+            password: currentPassword,
+        });
+        if (!isPasswordValid) {
+            return {
+                isError: true,
+                message: t("authTranslations.profile.email.error.passwordIncorrect"),
+            };
+        }
     }
 
     const token = createTokenValue();
@@ -168,9 +179,9 @@ export async function beginEmailChangeAction(
     const verificationUrl = `${env.BASE_URL}/verify-email?${new URLSearchParams({ token }).toString()}`;
 
     try {
-        await sendEmail({
+        await sendEmailChangeVerification({
             to: newEmail,
-            name: userDisplayName ?? undefined,
+            name,
             verificationUrl,
             currentEmail,
         });
@@ -268,7 +279,7 @@ export async function verifyEmailTokenAction(
         await db.transaction(async (trx) => {
             await trx
                 .update(UsersTable)
-                .set({ email: newEmail })
+                .set({ email: newEmail, emailVerified: now })
                 .where(eq(UsersTable.id, userId));
 
             await trx
@@ -290,6 +301,10 @@ export async function verifyEmailTokenAction(
     }
 
     await db.transaction(async (trx) => {
+        await trx
+            .update(UsersTable)
+            .set({ emailVerified: now })
+            .where(eq(UsersTable.id, userId));
         await trx
             .update(UserTokensTable)
             .set({ consumedAt: now })

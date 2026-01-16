@@ -7,7 +7,7 @@ import type { getOrganizations } from "@/auth/nextjs/actions";
 type OrganizationContextValue = Awaited<ReturnType<typeof getOrganizations>>;
 
 const OrganizationContext = createContext<OrganizationContextValue | null>(null);
-type OrganizationProviderProps = { value: OrganizationContextValue; children: ReactNode };
+type OrganizationProviderProps = { value: OrganizationContextValue | null; children: ReactNode };
 
 export function OrganizationProvider({ value, children }: OrganizationProviderProps) {
 	return <OrganizationContext.Provider value={value}>{children}</OrganizationContext.Provider>;

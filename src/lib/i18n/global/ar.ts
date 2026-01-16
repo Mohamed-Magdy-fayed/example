@@ -11,7 +11,7 @@ export default {
   hobby: dt("اخترت {hobby:enum} كهوايتك.", {
     enum: { hobby: { runner: "عداء", developer: "مطور" } },
   }),
-  appName: "اتيليه آلاء القصري",
+  appName: "مثال جاتيلينج",
   common: {
     menu: "القائمة",
     today: "اليوم",

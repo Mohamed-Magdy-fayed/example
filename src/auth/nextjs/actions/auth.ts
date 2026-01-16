@@ -174,8 +174,13 @@ export async function getAuth(): Promise<AuthState> {
     });
     if (!fullUser) return { isAuthenticated: false, session: null };
 
+    const userCredentials = await db.query.UserCredentialsTable.findFirst({
+        where: eq(UserCredentialsTable.userId, fullUser.id),
+        columns: { expiresAt: true },
+    });
+
     return {
         isAuthenticated: true,
-        session: { user: fullUser },
+        session: { user: fullUser, hasPassword: !!(userCredentials && (!userCredentials.expiresAt || userCredentials.expiresAt > new Date())) },
     };
 }

@@ -1,7 +1,8 @@
-import type { LanguageMessages } from "@/lib/i18n/lib";
+import { dt, type LanguageMessages } from "@/lib/i18n/lib";
 
 export default {
     authTranslations: {
+        accessDenied: "Access denied",
         required: "This field is required",
         emailMismatch: "Email addresses do not match",
         validation: {
@@ -78,6 +79,7 @@ export default {
             submitting: "Creating account...",
         },
         oauth: {
+            manage: "Manage OAuth accounts",
             providerUnavailable:
                 "{provider} sign-in is not currently available.",
             providerButton: "Continue with {provider}",
@@ -136,6 +138,7 @@ export default {
             },
             registering: "Waiting for passkey...",
             add: "Add passkey",
+            manage: "Manage passkeys",
             settings: {
                 description: "Register a passkey to sign in without a password.",
             },
@@ -241,6 +244,7 @@ export default {
                 invalidInput: "Invalid input",
             },
             email: {
+                change: "Change email",
                 error: {
                     sameAddress: "Use a different email address",
                     inUse: "Email is already in use",
@@ -273,6 +277,14 @@ export default {
                 placeholder: "Your phone number",
             },
             password: {
+                createOrChange: dt("{isChange:enum}", {
+                    enum: {
+                        isChange: {
+                            true: "Change Password",
+                            false: "Create Password",
+                        }
+                    }
+                }),
                 currentLabel: "Current password",
                 newLabel: "New password",
                 confirmLabel: "Confirm new password",
@@ -285,6 +297,7 @@ export default {
             },
         },
         emailVerification: {
+            verifyEmail: "Verify your email",
             heading: "Email verification",
             description: {
                 success: "Your email address is now verified.",

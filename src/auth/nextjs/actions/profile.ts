@@ -1,35 +1,21 @@
 "use server";
 
 import { eq } from "drizzle-orm";
-import { z } from "zod";
-import { authError } from "@/auth/core";
+import { cookies } from "next/headers";
+import type { z } from "zod";
+
+import { authError, refreshSession } from "@/auth/core";
 import {
     comparePasswords,
     generateSalt,
     hashPassword,
 } from "@/auth/core/passwordHasher";
 import { getCurrentUser } from "@/auth/nextjs/currentUser";
-import { updateProfileSchema } from "@/auth/schemas";
+import { changePasswordSchema, createPasswordSchema, updateProfileSchema } from "@/auth/schemas";
 import { UserCredentialsTable, UsersTable } from "@/auth/tables";
-import type { PartialUser, TypedResponse } from "@/auth/types";
+import type { TypedResponse } from "@/auth/types";
 import { getT } from "@/lib/i18n/actions";
 import { db } from "@/server/db";
-
-const changePasswordSchema = z.object({
-    userId: z.uuid(),
-    currentPassword: z.string().min(1),
-    newPassword: z.string().min(6),
-});
-
-const createPasswordSchema = z.object({
-    userId: z.uuid(),
-    newPassword: z.string().min(6),
-});
-
-export type PasswordChangeResult = {
-    refreshSession: boolean;
-    sessionUser?: Pick<PartialUser, "id" | "role">;
-};
 
 export async function updateProfileNameAction(
     rawInput: z.infer<typeof updateProfileSchema>,
@@ -60,9 +46,9 @@ export async function updateProfileNameAction(
 
 export async function changePasswordAction(
     rawInput: z.infer<typeof changePasswordSchema>,
-): Promise<TypedResponse<PasswordChangeResult>> {
+): Promise<TypedResponse<unknown>> {
     const { t } = await getT();
-    const sessionUser = await getCurrentUser({ redirectIfNotFound: true });
+    const { id: userId } = await getCurrentUser({ redirectIfNotFound: true });
 
     const parsed = changePasswordSchema.safeParse(rawInput);
     if (!parsed.success) {
@@ -72,7 +58,7 @@ export async function changePasswordAction(
         };
     }
 
-    const { userId, currentPassword, newPassword } = parsed.data;
+    const { currentPassword, newPassword } = parsed.data;
 
     const credentials = await db.query.UserCredentialsTable.findFirst({
         columns: { passwordHash: true, passwordSalt: true },
@@ -113,18 +99,18 @@ export async function changePasswordAction(
         })
         .where(eq(UserCredentialsTable.userId, userId));
 
+    await refreshSession(await cookies());
+
     return {
         isError: false,
-        refreshSession: true,
-        sessionUser: sessionUser ?? undefined,
     };
 }
 
 export async function createPasswordAction(
     rawInput: z.infer<typeof createPasswordSchema>,
-): Promise<TypedResponse<PasswordChangeResult>> {
+): Promise<TypedResponse<unknown>> {
     const { t } = await getT();
-    const sessionUser = await getCurrentUser({ redirectIfNotFound: true });
+    const { id: userId } = await getCurrentUser({ redirectIfNotFound: true });
 
     const parsed = createPasswordSchema.safeParse(rawInput);
     if (!parsed.success) {
@@ -134,7 +120,7 @@ export async function createPasswordAction(
         };
     }
 
-    const { userId, newPassword } = parsed.data;
+    const { newPassword } = parsed.data;
 
     const existing = await db.query.UserCredentialsTable.findFirst({
         columns: { userId: true },
@@ -160,10 +146,9 @@ export async function createPasswordAction(
         lastChangedAt: now,
     });
 
+    await refreshSession(await cookies());
 
     return {
         isError: false,
-        refreshSession: true,
-        sessionUser: sessionUser ?? undefined,
     };
 }
