@@ -18,13 +18,6 @@ export function useOauthProviderIcon() {
                     src="https://cdn.brandfetch.io/id6O2oGzv-/theme/dark/symbol.svg?c=1bxid64Mup7aczewSAYMX&t=1755835725776"
                     width={24}
                 />;
-            case "microsoft":
-                return <Image
-                    alt="Microsoft"
-                    height={24}
-                    src="https://cdn.brandfetch.io/idchmboHEZ/theme/dark/symbol.svg?c=1bxid64Mup7aczewSAYMX&t=1727706673120"
-                    width={24}
-                />;
             default:
                 return null;
         }

@@ -6,7 +6,6 @@ import type { Cookies } from "@/auth/types";
 import { env } from "@/env/server";
 import { createGithubOAuthClient } from "./github";
 import { createGoogleOAuthClient } from "./google";
-import { createMicrosoftOAuthClient } from "./microsoft";
 
 const STATE_COOKIE_KEY = "oAuthState";
 const CODE_VERIFIER_COOKIE_KEY = "oAuthCodeVerifier";
@@ -98,6 +97,8 @@ export class OAuthClient<T> {
 		})
 			.then((res) => res.json())
 			.then((rawData) => {
+				console.log(rawData);
+
 				const { data, success, error } =
 					this.userInfo.schema.safeParse(rawData);
 				if (!success) throw new InvalidUserError(error);
@@ -141,8 +142,6 @@ export function getOAuthClient(provider: OAuthProvider) {
 			return createGoogleOAuthClient();
 		case "github":
 			return createGithubOAuthClient();
-		case "microsoft":
-			return createMicrosoftOAuthClient();
 		default:
 			throw new Error(`Invalid provider: ${provider satisfies never}`);
 	}

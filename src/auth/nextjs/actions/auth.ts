@@ -121,6 +121,7 @@ export async function signUpAction(
                 .values({
                     name: input.name,
                     email,
+                    phone: input.phone,
                     role: "user",
                 })
                 .returning({

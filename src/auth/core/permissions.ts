@@ -43,7 +43,7 @@ export const rolesPermissions = {
   },
   user: {
     screens: {
-      view: (_, { screenKey }) => screenKey === "my-account",
+      view: true,
     },
     users: {
       view: (user: PartialUser, data: PartialUser) => user.id === data.id,

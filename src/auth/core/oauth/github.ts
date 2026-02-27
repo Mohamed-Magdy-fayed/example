@@ -25,7 +25,7 @@ export function createGithubOAuthClient() {
 				login: z.string(),
 			}),
 			parser: (user) => {
-				const email = user.email ?? "";
+				const email = user.email ?? `${user.name?.toLowerCase().replace(/\s/g, "")}@users.noreply.github.com`;
 				if (!email) {
 					throw new Error(
 						"GitHub did not return an email address. Make your email public or use another provider.",
