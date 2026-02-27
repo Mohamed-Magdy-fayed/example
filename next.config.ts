@@ -8,7 +8,7 @@ const nextConfig: NextConfig = {
 			{ hostname: "cdn.brandfetch.io" },
 			{ hostname: "firebasestorage.googleapis.com" },
 		]
-	}
+	},
 };
 
 export default nextConfig;

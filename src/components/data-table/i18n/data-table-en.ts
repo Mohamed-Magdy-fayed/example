@@ -1,0 +1,48 @@
+import { dt, type LanguageMessages } from "@/lib/i18n/lib";
+
+export default {
+    dataTableTranslations: {
+        today: "Today",
+        tomorrow: "Tomorrow",
+        from: "From",
+        to: "To",
+        slider: "{title} slider",
+        clear: "Clear",
+        clearFilter: "Clear {title} filter",
+        export: {
+            export: "Export",
+            clear: "Clear",
+            searchPlaceholder: "Search columns...",
+        },
+        noColumns: "No columns found.",
+        noResults: "No results.",
+        selected: "{count:number} selected",
+        rowsSelected: dt("{selected:number} of {rows:plural} selected", {
+            plural: { rows: { one: "{?} row", other: "{?} rows" } }
+        }),
+        clearSelection: "Clear selection",
+        rowsPerPage: "Rows per page",
+        sort: "Sort",
+        sortBy: "Sort By",
+        noSorting: "No sorting applied!",
+        modifySorting: "Modify sorting to organize your rows.",
+        addSorting: "Add sorting to organize your rows.",
+        addSort: "Add sort",
+        resetSorting: "Reset sorting",
+        searchFields: "Search fields...",
+        noFieldsFound: "No fields found.",
+        pageOf: dt("Page {page:number} of {total:number}", {}),
+        asc: "Asc",
+        desc: "Desc",
+        reset: "Reset",
+        hide: "Hide",
+        view: "View",
+        toggleColumns: "Toggle columns",
+        goToFirstPage: "Go to first page",
+        goToPreviousPage: "Go to previous page",
+        goToNextPage: "Go to next page",
+        goToLastPage: "Go to last page",
+        clearFilters: "Clear filters",
+        resetFilters: "Reset filters",
+    },
+} as const satisfies LanguageMessages;

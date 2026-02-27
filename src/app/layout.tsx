@@ -32,7 +32,9 @@ export default async function RootLayout({
 			suppressHydrationWarning
 		>
 			<body>
-				<Providers>{children}</Providers>
+				<Providers>
+					{children}
+				</Providers>
 			</body>
 		</html>
 	);

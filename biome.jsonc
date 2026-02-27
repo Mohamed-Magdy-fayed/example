@@ -23,7 +23,13 @@
 	"linter": {
 		"enabled": true,
 		"rules": {
+			"a11y": {
+				"noStaticElementInteractions": "off",
+				"useKeyWithClickEvents": "off",
+				"useSemanticElements": "off"
+			},
 			"correctness": {
+				"useParseIntRadix": "off",
 				"useExhaustiveDependencies": "off"
 			},
 			"suspicious": "off",

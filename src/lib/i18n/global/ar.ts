@@ -1,5 +1,7 @@
-import authAr from "@/auth/translations/auth-ar"
-import { dt, type LanguageMessages } from "../lib"
+import authAr from "@/auth/translations/auth-ar";
+import dataTableAr from "@/components/data-table/i18n/data-table-ar";
+import tasksAr from "@/features/tasks/i18n/tasks-ar";
+import { dt, type LanguageMessages } from "../lib";
 
 export default {
   locale: "ar",
@@ -24,7 +26,17 @@ export default {
     enabled: "مفعل",
     disabled: "معطل",
     days: dt("{dayName:enum}", {
-      enum: { dayName: { monday: "الإثنين", tuesday: "الثلاثاء", wednesday: "الأربعاء", thursday: "الخميس", friday: "الجمعة", saturday: "السبت", sunday: "الأحد" } },
+      enum: {
+        dayName: {
+          monday: "الإثنين",
+          tuesday: "الثلاثاء",
+          wednesday: "الأربعاء",
+          thursday: "الخميس",
+          friday: "الجمعة",
+          saturday: "السبت",
+          sunday: "الأحد",
+        },
+      },
     }),
     add: "إضافة",
     saving: "جاري الحفظ...",
@@ -39,6 +51,7 @@ export default {
     create: "إنشاء",
     edit: "تعديل",
     delete: "حذف",
+    deleteConfirmation: "تأكيد الحذف",
     areYouSure: "هل أنت متأكد؟",
     confirm: "تأكيد",
     yes: "نعم",
@@ -71,7 +84,8 @@ export default {
     upgrade: {
       title: "ترقية إلى الباقة المميزة",
       titleWithFeature: "ترقية لاستخدام {feature}",
-      description: "اكتشف هذه الميزة والعديد من الميزات الأخرى مع باقتنا المميزة. احصل على أدوات متقدمة ووظائف محسّنة.",
+      description:
+        "اكتشف هذه الميزة والعديد من الميزات الأخرى مع باقتنا المميزة. احصل على أدوات متقدمة ووظائف محسّنة.",
       button: "ترقية الآن",
     },
   },
@@ -107,6 +121,24 @@ export default {
   error: "حدث خطأ {error}. يرجى المحاولة مرة أخرى لاحقًا.",
   success: "تمت العملية بنجاح!",
   loading: "جاري التحميل...",
+  tour: {
+    start: "ابدأ الجولة",
+    navigation: {
+      title: "التنقل",
+      description:
+        "استخدم الشريط الجانبي للتنقل في مساحتك — افتح لوحة التحكم أو الصفحات الأخرى من هنا.",
+    },
+    dashboard: {
+      title: "لوحة التحكم",
+      description:
+        "هذه منطقة لوحة التحكم حيث تظهر عناصر الجدولة والجداول. انقر على العناصر لفتح التفاصيل واستخدم أدوات الجدول للتصفية والفرز.",
+    },
+    account: {
+      title: "إدارة الحساب",
+      description:
+        "افتح بطاقة المستخدم لتحديث بياناتك، تغيير كلمة المرور، أو تسجيل الخروج.",
+    },
+  },
   dataTable: {
     from: "من",
     to: "إلى",
@@ -153,4 +185,6 @@ export default {
     date: { year: { year: "numeric" } },
   }),
   ...authAr,
-} as const satisfies LanguageMessages
+  ...dataTableAr,
+  ...tasksAr,
+} as const satisfies LanguageMessages;

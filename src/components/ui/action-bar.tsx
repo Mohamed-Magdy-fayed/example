@@ -648,7 +648,7 @@ function ActionBarSeparator(props: ActionBarSeparatorProps) {
       role="separator"
       {...separatorProps}
       className={cn(
-        "in-data-[slot=action-bar-selection]:ml-0.5 in-data-[slot=action-bar-selection]:h-4 in-data-[slot=action-bar-selection]:w-px bg-border",
+        "in-data-[slot=action-bar-selection]:ms-0.5 in-data-[slot=action-bar-selection]:h-4 in-data-[slot=action-bar-selection]:w-px bg-border",
         orientation === "horizontal" ? "h-6 w-px" : "h-px w-full",
         className,
       )}

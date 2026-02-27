@@ -4,6 +4,8 @@ import { DropdownMenuGroup } from "@radix-ui/react-dropdown-menu";
 import {
     ChevronsUpDown,
     LanguagesIcon,
+    ListTreeIcon,
+    LockKeyhole,
     LogOut,
     MailIcon,
     MoonIcon,
@@ -23,6 +25,7 @@ import { EmailVerificationNotice } from "@/auth/nextjs/components/email-verifica
 import { OAuthConnections } from "@/auth/nextjs/components/oauth-connections";
 import { PasskeyManager } from "@/auth/nextjs/components/passkey-manager";
 import { ProfileForm } from "@/auth/nextjs/components/profile-form";
+import { Button } from "@/components/ui/button";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -40,6 +43,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Status, StatusIndicator } from "@/components/ui/status";
+import { Swap, SwapOff, SwapOn } from "@/components/ui/swap";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 
 export function SidebarUser() {
@@ -56,7 +60,7 @@ export function SidebarUser() {
 
     return (
         <SidebarMenu>
-            <SidebarMenuItem>
+            <SidebarMenuItem id="tour3">
                 <ResponsiveDialog
                     onOpenChange={(open) => setOpenDialog(open ? "profile" : undefined)}
                     open={openDialog === "profile"}
@@ -69,6 +73,7 @@ export function SidebarUser() {
                 >
                     <div className="flex flex-col gap-4">
                         <EmailVerificationNotice
+                            onClose={() => setOpenDialog(undefined)}
                             isVerified={!!session.user.emailVerified}
                         />
                         <Activity mode={session.user.emailVerified ? "visible" : "hidden"}>
@@ -140,34 +145,44 @@ export function SidebarUser() {
                                 })}
                             </DropdownMenuItem>
                             <DropdownMenuItem onSelect={() => setOpenDialog("oauth")}>
-                                <UserIcon />
+                                <ListTreeIcon />
                                 {t("authTranslations.oauth.manage")}
                             </DropdownMenuItem>
                             <DropdownMenuItem onSelect={() => setOpenDialog("passkeys")}>
-                                <UserIcon />
+                                <LockKeyhole />
                                 {t("authTranslations.passkeys.manage")}
                             </DropdownMenuItem>
                         </DropdownMenuGroup>
                         <DropdownMenuSeparator />
-                        <DropdownMenuGroup>
-                            <DropdownMenuItem
-                                onSelect={(e) => {
-                                    e.preventDefault();
-                                    setTheme(theme === "dark" ? "light" : "dark");
-                                }}
-                            >
-                                {theme === "dark" ? <MoonIcon /> : <SunIcon />}
-                                {t("themeToggle")}
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                                onSelect={(e) => {
-                                    e.preventDefault();
-                                    setLocale(locale === "en" ? "ar" : "en");
-                                }}
-                            >
-                                <LanguagesIcon />
-                                {t("opposite")}
-                            </DropdownMenuItem>
+                        <DropdownMenuGroup className="grid grid-cols-2 gap-2">
+                            <Button asChild variant="outline">
+                                <Swap
+                                    animation="rotate"
+                                    onSwappedChange={(val) => {
+                                        startTransition(() => {
+                                            setTheme(val ? "dark" : "light");
+                                        });
+                                    }}
+                                    swapped={theme === "dark"}
+                                >
+                                    <SwapOn>
+                                        <MoonIcon />
+                                    </SwapOn>
+                                    <SwapOff>
+                                        <SunIcon />
+                                    </SwapOff>
+                                </Swap>
+                            </Button>
+                            <Button asChild variant="outline">
+                                <Swap
+                                    animation="scale"
+                                    onSwappedChange={(val) => setLocale(val ? "en" : "ar")}
+                                    swapped={locale === "en"}
+                                >
+                                    <SwapOn>AR</SwapOn>
+                                    <SwapOff>EN</SwapOff>
+                                </Swap>
+                            </Button>
                         </DropdownMenuGroup>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem

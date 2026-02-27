@@ -23,11 +23,13 @@ export default async function SystemPagesLayout({
     children: React.ReactNode;
 }) {
     const { locale } = await getT();
+    const dir = locale === "ar" ? "rtl" : "ltr";
 
     return (
         <SidebarProvider>
             <Sidebar
                 collapsible="icon"
+                dir={dir}
                 side={locale === "ar" ? "right" : "left"}
                 variant="inset"
             >
@@ -35,7 +37,7 @@ export default async function SystemPagesLayout({
                     <SidebarOrganization />
                     <SidebarSeparator className="mx-0" />
                 </SidebarHeader>
-                <SidebarContent className="px-1" dir={locale === "ar" ? "rtl" : "ltr"}>
+                <SidebarContent className="px-1">
                     <SidebarGroup>
                         <SidebarGroupContent>
                             <SidebarAdminMenu />
@@ -52,9 +54,7 @@ export default async function SystemPagesLayout({
                 <header className="flex shrink-0 items-center gap-2 p-4">
                     <div className="flex items-center gap-2">
                         <SidebarTrigger />
-                        <Separator
-                            orientation="vertical"
-                        />
+                        <Separator orientation="vertical" />
                     </div>
                 </header>
                 {children}

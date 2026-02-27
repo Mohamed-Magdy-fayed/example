@@ -231,7 +231,7 @@ export default function SidebarAdminMenu({
                                 </WrapWithTooltip>
                                 <SidebarMenuAction
                                     asChild
-                                    className="ml-auto transition-transform duration-200"
+                                    className="ms-auto transition-transform duration-200"
                                 >
                                     <ChevronDownIcon
                                         className="transition-transform duration-200 group-data-[state=open]:ltr:rotate-90 group-data-[state=open]:rtl:-rotate-90"

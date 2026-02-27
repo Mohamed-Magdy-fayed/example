@@ -1,5 +1,4 @@
-import { LoadingIcon } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
+import { Loader } from "lucide-react";
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
@@ -30,7 +29,7 @@ export function LoadingSwap({
           className,
         )}
       >
-        <HugeiconsIcon className="animate-spin" icon={LoadingIcon} />
+        <Loader className="animate-spin" />
       </div>
     </div>
   );

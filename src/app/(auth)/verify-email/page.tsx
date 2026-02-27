@@ -36,7 +36,7 @@ export default async function VerifyEmailPage({
 
             <Button asChild>
                 <Link href="/">
-                    <Home aria-hidden className="mr-2 h-4 w-4" />
+                    <Home aria-hidden className="me-2 h-4 w-4" />
                     {t("authTranslations.emailVerification.backHome")}
                 </Link>
             </Button>

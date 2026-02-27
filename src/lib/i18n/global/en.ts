@@ -1,4 +1,6 @@
 import authEn from "@/auth/translations/auth-en";
+import dataTableEn from "@/components/data-table/i18n/data-table-en";
+import tasksEn from "@/features/tasks/i18n/tasks-en";
 import { dt, type LanguageMessages } from "../lib";
 
 export default {
@@ -49,6 +51,7 @@ export default {
     create: "Create",
     edit: "Edit",
     delete: "Delete",
+    deleteConfirmation: "Delete Confirmation",
     areYouSure: "Are you sure?",
     confirm: "Confirm",
     yes: "Yes",
@@ -120,6 +123,24 @@ export default {
   error: "An error occurred {error}. Please try again later.",
   success: "Operation successful!",
   loading: "Loading...",
+  tour: {
+    start: "Start tour",
+    navigation: {
+      title: "Navigation",
+      description:
+        "Use the left sidebar to navigate your workspace — open Dashboard or other pages from here.",
+    },
+    dashboard: {
+      title: "Dashboard",
+      description:
+        "This is the Dashboard area where your main widgets and tables appear. Click items to open details and use table controls to filter and sort.",
+    },
+    account: {
+      title: "Manage Account",
+      description:
+        "Open your user card to update profile details, change password, or sign out.",
+    },
+  },
   dataTable: {
     from: "From",
     to: "To",
@@ -166,4 +187,6 @@ export default {
     date: { year: { year: "numeric" } },
   }),
   ...authEn,
+  ...dataTableEn,
+  ...tasksEn,
 } as const satisfies LanguageMessages;

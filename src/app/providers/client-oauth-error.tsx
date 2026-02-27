@@ -14,12 +14,10 @@ export function ClientOAuthError() {
             if (value) toast.error(value);
             // clear the cookie
             document.cookie = "oauthError=; path=/; max-age=0";
-        } catch (e) {
+        } catch (_) {
             // ignore
         }
     }, []);
 
     return null;
 }
-
-export default ClientOAuthError;

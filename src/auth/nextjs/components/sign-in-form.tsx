@@ -1,7 +1,10 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { startAuthentication } from "@simplewebauthn/browser";
+import {
+	type AuthenticationResponseJSON,
+	startAuthentication,
+} from "@simplewebauthn/browser";
 import { ArrowLeftIcon, FingerprintIcon } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -63,19 +66,32 @@ export function SignInForm() {
 			return;
 		}
 
-		startTransition(async () => { });
-		const beginResult = await beginPasskeyAuthenticationAction(email);
+		startTransition(async () => {
+			let assertion: AuthenticationResponseJSON | null = null;
+			try {
+				const beginResult = await beginPasskeyAuthenticationAction(email);
 
-		if (beginResult.isError) {
-			toast.error(beginResult.message);
-			return;
-		}
+				if (beginResult.isError) {
+					toast.error(beginResult.message);
+					return;
+				}
 
-		const assertion = await startAuthentication({
-			optionsJSON: beginResult.options as any,
+				assertion = await startAuthentication({
+					optionsJSON: beginResult.options as any,
+				});
+
+			} catch (error) {
+				error instanceof Error
+					? toast.error(error.message)
+					: toast.error(t("authTranslations.passkeys.auth.error.generic"));
+			}
+
+			if (!assertion) {
+				toast.error(t("authTranslations.passkeys.auth.error.generic"));
+				return;
+			}
+			await completePasskeyAuthenticationAction(email, assertion);
 		});
-
-		await completePasskeyAuthenticationAction(email, assertion);
 	}
 
 	async function handleOAuthClick(provider: OAuthProvider) {

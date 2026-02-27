@@ -12,8 +12,10 @@ import { useTranslation } from "@/lib/i18n/useTranslation";
 
 export function EmailVerificationNotice({
     isVerified,
+    onClose,
 }: {
     isVerified?: boolean;
+    onClose?: () => void;
 }) {
     const { t } = useTranslation();
     const { session } = useAuth();
@@ -59,7 +61,9 @@ export function EmailVerificationNotice({
                         ? t("authTranslations.emailVerification.notice.sending")
                         : t("authTranslations.emailVerification.notice.sendButton")}
                 </Button>
-                <Button variant="destructive">{t("common.cancel")}</Button>
+                <Button onClick={onClose} variant="destructive">
+                    {t("common.cancel")}
+                </Button>
             </div>
         </div>
     );
