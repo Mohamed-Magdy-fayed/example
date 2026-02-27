@@ -1,6 +1,6 @@
 CREATE TYPE "public"."task_priority" AS ENUM('low', 'medium', 'high', 'critical');--> statement-breakpoint
 CREATE TYPE "public"."task_status" AS ENUM('backlog', 'todo', 'in-progress', 'review', 'blocked', 'done');--> statement-breakpoint
-CREATE TYPE "public"."oauth_provider" AS ENUM('google', 'github', 'microsoft');--> statement-breakpoint
+CREATE TYPE "public"."oauth_provider" AS ENUM('google', 'github');--> statement-breakpoint
 CREATE TYPE "public"."user_token_type" AS ENUM('email_verification', 'password_reset', 'device_trust', 'otp');--> statement-breakpoint
 CREATE TYPE "public"."user_role" AS ENUM('admin', 'user');--> statement-breakpoint
 CREATE TABLE "tasks" (

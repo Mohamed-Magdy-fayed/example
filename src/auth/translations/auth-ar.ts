@@ -67,8 +67,8 @@ export default {
             description: "املئ البيانات للتسجيل",
             error: {
                 generic: "تعذر إنشاء الحساب",
-                duplicate: "يوجد حساب لهذا البريد الإلكتروني",
-                invalidInvite: "دعوة غير صالحة أو منتهية",
+                duplicate: "يوجد حساب لهذا البريد مسبقاً",
+                invalidInvite: "الدعوة غير صالحة أو منتهية",
             },
             nameLabel: "الاسم",
             emailLabel: "البريد الإلكتروني",
@@ -79,23 +79,23 @@ export default {
             submitting: "جارٍ إنشاء الحساب...",
         },
         oauth: {
-            manage: "ادارة حسابات OAuth",
+            manage: "إدارة حسابات OAuth",
             providerUnavailable: "تسجيل الدخول عبر {provider} غير متاح حالياً.",
-            providerButton: "متابعة عبر {provider}",
+            providerButton: "المتابعة مع {provider}",
             error: {
-                connectFailed: "تعذر الاتصال. يرجى المحاولة مرة أخرى.",
-                alreadyLinked: "هذا الحساب مرتبط بمستخدم آخر.",
-                missingEmail: "تعذر تحديد البريد الإلكتروني من ملف الموفر.",
+                connectFailed: "تعذر الاتصال. حاول مرة أخرى.",
+                alreadyLinked: "هذا الحساب مرتبط بمستخدم آخر بالفعل.",
+                missingEmail: "تعذر تحديد البريد الإلكتروني من ملف المزود.",
             },
             connections: {
                 title: "الحسابات المتصلة",
-                description: "اربط أو افصل موفري OAuth الذين يمكنك استخدامها للوصول إلى حسابك.",
-                loading: "جارٍ تحميل موفري OAuth...",
+                description: "اربط أو افصل مزودي OAuth التي يمكنك استخدامها للوصول إلى حسابك.",
+                loading: "جارٍ تحميل مزودي OAuth…",
                 loadError: "تعذر تحميل اتصالات OAuth.",
-                disconnectSuccess: "تم إزالة الاتصال.",
-                notLinked: "الموفر غير مرتبط.",
-                onlyMethod: "لا يمكن إزالة وسيلة الدخول الوحيدة.",
-                empty: "لا توجد موفرو OAuth مكوّنون حالياً.",
+                disconnectSuccess: "تمت إزالة الاتصال.",
+                notLinked: "المزوّد غير مرتبط.",
+                onlyMethod: "لا يمكن إزالة طريقة تسجيل الدخول الوحيدة.",
+                empty: "لا توجد مزودات OAuth مهيأة حالياً.",
                 connectedAt: "متصل منذ {date}",
                 connected: "متصل",
                 notConnected: "غير متصل",
@@ -329,9 +329,6 @@ export default {
                 nameTooLong: "اسم الفرع طويل جداً",
                 invalidOrganization: "فرع غير صالحة",
             },
-            manage: {
-                title: "إدارة الفرع",
-            },
             create: {
                 nameLabel: "اسم الفرع",
                 namePlaceholder: "Acme Inc.",
@@ -340,6 +337,11 @@ export default {
                 submit: "إنشاء فرع",
                 submitting: "جارٍ الإنشاء...",
                 title: "إنشاء فرع جديد",
+            },
+            edit: {
+                submit: "حفظ التغييرات",
+                submitting: "جارٍ الحفظ...",
+                title: "تعديل الفرع",
             },
             actions: {
                 setActiveOrganization: {
@@ -350,10 +352,18 @@ export default {
                     success: "تم إنشاء الفرع",
                     error: "تعذر إنشاء الفرع",
                 },
+                updateOrganization: {
+                    success: "تم تحديث الفرع",
+                    notFound: "الفرع غير موجود",
+                    ownerOnly: "فقط المنشئ يمكنه تعديل الفرع",
+                    error: "تعذر تحديث الفرع",
+                },
                 deleteOrganization: {
-                    notFound: "الفرع غير موجودة",
+                    notFound: "الفرع غير موجود",
                     ownerOnly: "فقط المنشئ يمكنه حذف الفرع",
                     success: "تم حذف الفرع",
+                    confirmation:
+                        "هل تريد حذف {name}؟ لا يمكن التراجع عن هذا الإجراء وسيتم إزالة الفرع من جميع الأعضاء.",
                 },
                 common: {
                     noOrgAccess: "ليس لديك صلاحية لهذه الفرع",
@@ -365,8 +375,8 @@ export default {
             switcher: {
                 add: "إضافة فرع",
                 select: "اختر الفرع",
+                edit: "تعديل الفرع",
                 empty: "قم بإنشاء فرع",
-                manage: "إدارة الفروع",
                 activeBadge: "نشط",
                 current: "الحالي",
                 setActive: "تعيين كافتراضي",

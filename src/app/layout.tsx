@@ -1,12 +1,10 @@
 import "./globals.css";
 
 import type { Metadata } from "next";
-import { Figtree, Geist } from "next/font/google";
+import { Figtree, Noto_Naskh_Arabic } from "next/font/google";
 import Providers from "@/app/providers";
 import { getLocaleCookie } from "@/lib/i18n/actions";
 import { cn } from "@/lib/utils";
-
-const figtree = Figtree({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
 	title: "Gateling Example",
@@ -14,10 +12,8 @@ export const metadata: Metadata = {
 	icons: [{ rel: "icon", url: "/favicon.ico" }],
 };
 
-const geist = Geist({
-	subsets: ["latin"],
-	variable: "--font-geist-sans",
-});
+const figtree = Figtree({ subsets: ["latin"], variable: "--font-sans" });
+const arabicSans = Noto_Naskh_Arabic({ subsets: ["arabic"], variable: "--font-arabic-sans" });
 
 export default async function RootLayout({
 	children,
@@ -26,7 +22,9 @@ export default async function RootLayout({
 
 	return (
 		<html
-			className={cn(geist.variable, figtree.variable)}
+			className={cn(
+				locale === "ar" ? arabicSans.variable : figtree.variable,
+			)}
 			dir={locale === "ar" ? "rtl" : "ltr"}
 			lang={locale}
 			suppressHydrationWarning

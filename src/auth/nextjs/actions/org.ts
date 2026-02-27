@@ -5,7 +5,10 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { authError } from "@/auth/core";
 import { getCurrentUser } from "@/auth/nextjs/currentUser";
-import { createOrganizationSchema } from "@/auth/schemas";
+import {
+    createOrganizationSchema,
+    updateOrganizationSchema,
+} from "@/auth/schemas";
 import {
     type Organization,
     OrganizationMembershipsTable,
@@ -64,6 +67,53 @@ export async function createOrganizationAction(
     revalidatePath("/");
 
     return { isError: false, organizationId: org.id };
+}
+
+export async function updateOrganizationAction(
+    rawInput: z.infer<typeof updateOrganizationSchema>,
+): Promise<TypedResponse<{ updated: true }>> {
+    const { t } = await getT();
+    const parsed = updateOrganizationSchema.safeParse(rawInput);
+    if (!parsed.success) {
+        return {
+            isError: true,
+            message: t("authTranslations.error.badRequest"),
+        };
+    }
+
+    const { id: actorUserId } = await getCurrentUser({ redirectIfNotFound: true });
+    const { organizationId, nameEn, nameAr } = parsed.data;
+
+    const org = await db.query.OrganizationsTable.findFirst({
+        columns: { id: true, ownerId: true },
+        where: eq(OrganizationsTable.id, organizationId),
+    });
+
+    if (!org) {
+        return {
+            isError: true,
+            message: t("authTranslations.org.actions.updateOrganization.notFound"),
+        };
+    }
+
+    if (org.ownerId !== actorUserId) {
+        return {
+            isError: true,
+            message: t("authTranslations.org.actions.updateOrganization.ownerOnly"),
+        };
+    }
+
+    await db
+        .update(OrganizationsTable)
+        .set({
+            nameEn: nameEn.trim(),
+            nameAr: nameAr.trim(),
+        })
+        .where(eq(OrganizationsTable.id, organizationId));
+
+    revalidatePath("/");
+
+    return { isError: false, updated: true };
 }
 
 export async function deleteOrganizationAction(

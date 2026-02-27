@@ -117,3 +117,7 @@ export const createOrganizationSchema = z.object({
 	nameEn: z.string(),
 	nameAr: z.string(),
 });
+
+export const updateOrganizationSchema = createOrganizationSchema.extend({
+	organizationId: z.uuid(),
+});

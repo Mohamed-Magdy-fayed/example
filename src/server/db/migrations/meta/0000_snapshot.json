@@ -1,5 +1,5 @@
 {
-  "id": "47d30ece-de66-46be-89c5-76ce9e9323bb",
+  "id": "d2df2364-0bf9-41c4-b850-af6dbb9e21aa",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -776,8 +776,7 @@
       "schema": "public",
       "values": [
         "google",
-        "github",
-        "microsoft"
+        "github"
       ]
     },
     "public.user_token_type": {

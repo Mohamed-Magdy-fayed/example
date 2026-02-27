@@ -73,8 +73,8 @@ export function SidebarUser() {
                 >
                     <div className="flex flex-col gap-4">
                         <EmailVerificationNotice
-                            onClose={() => setOpenDialog(undefined)}
                             isVerified={!!session.user.emailVerified}
+                            onClose={() => setOpenDialog(undefined)}
                         />
                         <Activity mode={session.user.emailVerified ? "visible" : "hidden"}>
                             <ChangeEmailForm />

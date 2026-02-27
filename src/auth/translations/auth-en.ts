@@ -335,9 +335,6 @@ export default {
                 nameTooLong: "Organization name is too long",
                 invalidOrganization: "Invalid organization",
             },
-            manage: {
-                title: "Manage Organization",
-            },
             create: {
                 nameLabel: "Organization name",
                 namePlaceholder: "Acme Inc.",
@@ -346,6 +343,11 @@ export default {
                 submit: "Create organization",
                 submitting: "Creating...",
                 title: "Create a new organization",
+            },
+            edit: {
+                submit: "Save changes",
+                submitting: "Saving...",
+                title: "Edit organization",
             },
             actions: {
                 setActiveOrganization: {
@@ -356,10 +358,18 @@ export default {
                     success: "Organization created",
                     error: "Unable to create organization",
                 },
+                updateOrganization: {
+                    success: "Organization updated",
+                    notFound: "Organization not found",
+                    ownerOnly: "Only the creator can edit the organization",
+                    error: "Unable to update organization",
+                },
                 deleteOrganization: {
                     notFound: "Organization not found",
                     ownerOnly: "Only the creator can delete the organization",
                     success: "Organization deleted",
+                    confirmation:
+                        "Delete {name}? This action cannot be undone and will remove the organization for all members.",
                 },
                 common: {
                     noOrgAccess: "You do not have access to that organization",
@@ -371,7 +381,7 @@ export default {
             switcher: {
                 add: "Add organization",
                 select: "Select organization",
-                manage: "Manage organizations",
+                edit: "Edit organization",
                 empty: "Create an organization",
                 activeBadge: "Active",
                 current: "Current",
