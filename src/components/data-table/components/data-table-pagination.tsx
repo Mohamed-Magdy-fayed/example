@@ -16,7 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useTranslation } from "@/lib/i18n/useTranslation";
+import { useTranslation } from "@/features/core/i18n/useTranslation";
 import { cn } from "@/lib/utils";
 
 interface DataTablePaginationProps<TData> extends React.ComponentProps<"div"> {
@@ -51,7 +51,7 @@ export function DataTablePagination<TData>({
         })}
       </div>
       <div className="flex flex-col-reverse items-center gap-4 sm:flex-row sm:gap-6 lg:gap-8">
-        <div className="flex items-center space-x-2 rtl:space-x-reverse">
+        <div className="flex items-center gap-2 rtl:space-x-reverse">
           <p className="whitespace-nowrap font-medium text-sm">
             {t("dataTableTranslations.rowsPerPage")}
           </p>

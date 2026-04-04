@@ -20,7 +20,7 @@ export function LoadingSwap({
           className,
         )}
       >
-        {children}
+        <div className="flex items-center gap-2">{children}</div>
       </div>
       <div
         className={cn(

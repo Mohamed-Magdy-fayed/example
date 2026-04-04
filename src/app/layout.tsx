@@ -1,9 +1,9 @@
 import "./globals.css";
 
 import type { Metadata } from "next";
-import { Figtree, Noto_Naskh_Arabic } from "next/font/google";
-import Providers from "@/app/providers";
-import { getLocaleCookie } from "@/lib/i18n/actions";
+import Providers from "@/app/_providers";
+import { getThemeFromCookie } from "@/features/core/color-theme/theme";
+import { getLocaleCookie } from "@/features/core/i18n/actions";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
@@ -12,27 +12,24 @@ export const metadata: Metadata = {
 	icons: [{ rel: "icon", url: "/favicon.ico" }],
 };
 
-const figtree = Figtree({ subsets: ["latin"], variable: "--font-sans" });
-const arabicSans = Noto_Naskh_Arabic({ subsets: ["arabic"], variable: "--font-arabic-sans" });
-
 export default async function RootLayout({
 	children,
 }: Readonly<{ children: React.ReactNode }>) {
 	const locale = await getLocaleCookie();
+	const theme = await getThemeFromCookie();
 
 	return (
 		<html
 			className={cn(
-				locale === "ar" ? arabicSans.variable : figtree.variable,
+				"ltr:font-sans rtl:font-arabic-sans",
+				theme,
 			)}
 			dir={locale === "ar" ? "rtl" : "ltr"}
 			lang={locale}
 			suppressHydrationWarning
 		>
 			<body>
-				<Providers>
-					{children}
-				</Providers>
+				<Providers locale={locale} theme={theme}>{children}</Providers>
 			</body>
 		</html>
 	);

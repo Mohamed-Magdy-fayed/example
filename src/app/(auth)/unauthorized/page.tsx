@@ -2,7 +2,7 @@ import { HomeIcon, ShieldBanIcon } from "lucide-react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { getT } from "@/lib/i18n/actions";
+import { getT } from "@/features/core/i18n/actions";
 
 export default async function UnauthorizedPage() {
     const { t } = await getT();

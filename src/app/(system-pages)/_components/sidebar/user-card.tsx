@@ -1,10 +1,9 @@
 import type { ComponentProps } from "react";
-
-import { getInitials } from "@/auth/core";
-import { useAuth } from "@/auth/nextjs/components/auth-provider";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { P, Small } from "@/components/ui/typography";
+import { getInitials } from "@/features/core/auth/core";
+import { useAuth } from "@/features/core/auth/nextjs/components/auth-provider";
 import { cn } from "@/lib/utils";
 
 export function UserCard({ className, ...props }: ComponentProps<"div">) {

@@ -1,9 +1,10 @@
 import {
     LayoutDashboardIcon,
+    UsersIcon,
 } from "lucide-react";
 
-import type { ScreenKey } from "@/auth/core";
-import { useTranslation } from "@/lib/i18n/useTranslation";
+import type { ScreenKey } from "@/features/core/auth/core";
+import { useTranslation } from "@/features/core/i18n/useTranslation";
 
 type NavLink = {
     screenKey: ScreenKey;
@@ -23,6 +24,12 @@ export const useMainNavLinks = (): (NavLink & {
             icon: LayoutDashboardIcon,
             label: t("common.dashboard"),
             url: "/dashboard",
+        },
+        {
+            screenKey: "employee",
+            icon: UsersIcon,
+            label: t("employeeTranslations.sidebarMenuLabel"),
+            url: "/employee",
         },
     ];
 };

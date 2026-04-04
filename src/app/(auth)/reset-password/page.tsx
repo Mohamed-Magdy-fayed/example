@@ -1,5 +1,7 @@
-import { ResetPasswordForm } from "@/auth/nextjs/components/reset-password-form";
+import { ResetPasswordForm } from "@/features/core/auth/nextjs/components/reset-password-form";
 
-export default function ResetPasswordPage() {
-    return <ResetPasswordForm />
+export default async function ResetPasswordPage({ searchParams }: { searchParams: Promise<{ phone?: string }> }) {
+    const { phone } = await searchParams;
+
+    return <ResetPasswordForm initialPhone={phone} />
 }

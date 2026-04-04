@@ -1,3 +1,7 @@
+import { usersRouter } from "@/features/users/router";
+import { authRouter } from "@/server/api/routers/auth";
+import { contactRouter } from "@/server/api/routers/contact-router";
+import { branchRouter } from "@/server/api/routers/root/branchRouter";
 import { createCallerFactory, createTRPCRouter } from "@/server/api/trpc";
 
 /**
@@ -6,7 +10,12 @@ import { createCallerFactory, createTRPCRouter } from "@/server/api/trpc";
  * All routers added in /api/routers should be manually added here.
  */
 export const appRouter = createTRPCRouter({
-    root: createTRPCRouter({}),
+    auth: authRouter,
+    root: createTRPCRouter({
+        branch: branchRouter,
+    }),
+    users: usersRouter,
+    contactRouter,
 });
 
 // export type definition of API

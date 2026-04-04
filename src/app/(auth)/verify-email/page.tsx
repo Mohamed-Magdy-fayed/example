@@ -1,12 +1,11 @@
 import { Home } from "lucide-react";
 import Link from "next/link";
 import { Suspense } from "react";
-
-import { verifyEmailTokenAction } from "@/auth/nextjs/actions/email";
 import { Button } from "@/components/ui/button";
 import { Status, StatusIndicator, StatusLabel } from "@/components/ui/status";
 import { H3 } from "@/components/ui/typography";
-import { getT } from "@/lib/i18n/actions";
+import { verifyEmailTokenAction } from "@/features/core/auth/nextjs/actions/email";
+import { getT } from "@/features/core/i18n/actions";
 
 type VerifyEmailPageProps = {
     searchParams: Promise<{ token: string }>;

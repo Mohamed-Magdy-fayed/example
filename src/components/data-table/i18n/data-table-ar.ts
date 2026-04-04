@@ -1,4 +1,4 @@
-import { dt, type LanguageMessages } from "@/lib/i18n/lib";
+import { dt, type LanguageMessages } from "@/features/core/i18n/lib";
 
 export default {
     dataTableTranslations: {
@@ -44,6 +44,7 @@ export default {
         goToPreviousPage: "الانتقال إلى الصفحة السابقة",
         goToNextPage: "الانتقال إلى الصفحة التالية",
         goToLastPage: "الانتقال إلى الصفحة الأخيرة",
+        filters: "الفلاتر",
         clearFilters: "مسح الفلاتر",
         resetFilters: "إعادة تعيين الفلاتر",
     },

@@ -11,7 +11,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useTranslation } from "@/lib/i18n/useTranslation";
+import { useTranslation } from "@/features/core/i18n/useTranslation";
 import { cn } from "@/lib/utils";
 
 interface DataTableActionBarProps<TData>
@@ -91,7 +91,7 @@ function DataTableActionBarAction({
     <Button
       className={cn(
         "gap-1.5 [&>svg]:size-3.5",
-        size === "icon" ? "size-7" : "h-7",
+        size === "icon" ? "size-7" : "h-8",
         className,
       )}
       disabled={disabled || isPending}
@@ -132,14 +132,14 @@ function DataTableActionBarSelection<TData>({
   }, [table]);
 
   return (
-    <div className="flex h-7 items-center rounded-md border pe-1 ps-2.5">
+    <div className="flex h-8 items-center rounded-md border ps-2.5 pe-1">
       <span className="whitespace-nowrap text-xs">
         {t("dataTableTranslations.selected", {
           count: table.getFilteredSelectedRowModel().rows.length,
         })}
       </span>
       <Separator
-        className="me-1 ms-2 data-[orientation=vertical]:h-4"
+        className="ms-2 me-1 data-[orientation=vertical]:h-4"
         orientation="vertical"
       />
       <Tooltip>

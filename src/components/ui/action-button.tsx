@@ -2,7 +2,6 @@
 
 import { type ComponentProps, type ReactNode, useTransition } from "react";
 import { toast } from "sonner";
-import type { TypedResponse } from "@/auth/types";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,7 +15,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { LoadingSwap } from "@/components/ui/loading-swap";
-import { useTranslation } from "@/lib/i18n/useTranslation";
+import type { TypedResponse } from "@/features/core/auth/types";
+import { useTranslation } from "@/features/core/i18n/useTranslation";
 
 export function ActionButton<T>({
   action,

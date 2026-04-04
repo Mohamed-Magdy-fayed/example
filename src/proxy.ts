@@ -1,11 +1,25 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { getSessionFromCookie, hasPermission, refreshSession, type ScreenKey } from "@/auth/core";
+import { getSessionFromCookie, hasPermission, refreshSession, type ScreenKey } from "@/features/core/auth/core";
 
 const authRoutes = [
     "/sign-in",
     "/sign-up",
     "/forgot-password",
     "/reset-password",
+];
+
+const publicRoutes = [
+    "/about",
+    "/contact",
+    "/cookies",
+    "/features",
+    "/pricing",
+    "/privacy",
+    "/projects",
+    "/refund",
+    "/skills",
+    "/terms",
+    "/verify-email",
 ];
 
 export async function proxy(request: NextRequest) {
@@ -24,6 +38,7 @@ async function middlewareAuth(request: NextRequest) {
     const pathname = request.nextUrl.pathname;
 
     const isAuthRoute = authRoutes.some(route => pathname.startsWith(route));
+    const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route));
 
     if (!user) {
         if (isAuthRoute) {
@@ -34,6 +49,8 @@ async function middlewareAuth(request: NextRequest) {
     } else {
         if (isAuthRoute) {
             return NextResponse.redirect(new URL("/", request.url));
+        } else if (isPublicRoute) {
+            return NextResponse.next();
         } else {
             const screenKey = request.nextUrl.pathname as unknown as ScreenKey;
             if (!hasPermission(user, "screens", "view", { screenKey })) {

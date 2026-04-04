@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
 import { Slider } from "@/components/ui/slider";
-import { useTranslation } from "@/lib/i18n/useTranslation";
+import { useTranslation } from "@/features/core/i18n/useTranslation";
 import { cn } from "@/lib/utils";
 
 interface Range {
@@ -193,7 +193,7 @@ export function DataTableSliderFilter<TData>({
                 value={range[0]?.toString()}
               />
               {unit && (
-                <span className="absolute top-0 end-0 bottom-0 flex items-center rounded-e-md bg-accent px-2 text-muted-foreground text-sm">
+                <span className="absolute end-0 top-0 bottom-0 flex items-center rounded-e-md bg-accent px-2 text-muted-foreground text-sm">
                   {unit}
                 </span>
               )}
@@ -217,7 +217,7 @@ export function DataTableSliderFilter<TData>({
                 value={range[1]?.toString()}
               />
               {unit && (
-                <span className="absolute top-0 end-0 bottom-0 flex items-center rounded-e-md bg-accent px-2 text-muted-foreground text-sm">
+                <span className="absolute end-0 top-0 bottom-0 flex items-center rounded-e-md bg-accent px-2 text-muted-foreground text-sm">
                   {unit}
                 </span>
               )}

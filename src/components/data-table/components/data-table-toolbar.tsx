@@ -1,7 +1,7 @@
 "use client";
 
 import type { Column, Table } from "@tanstack/react-table";
-import { X } from "lucide-react";
+import { ListFilterPlusIcon, X } from "lucide-react";
 import * as React from "react";
 
 import { DataTableDateFilter } from "@/components/data-table/components/data-table-date-filter";
@@ -11,8 +11,9 @@ import { DataTableViewOptions } from "@/components/data-table/components/data-ta
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SearchInput } from "@/components/ui/search-input";
-import { useTranslation } from "@/lib/i18n/useTranslation";
+import { useTranslation } from "@/features/core/i18n/useTranslation";
 import { cn } from "@/lib/utils";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 interface DataTableToolbarProps<TData> extends React.ComponentProps<"div"> {
   table: Table<TData>;
@@ -36,6 +37,29 @@ export function DataTableToolbar<TData>({
     table.resetColumnFilters();
   }, [table]);
 
+  const filterItems = (
+    <>
+      {
+        columns.map((column) => (
+          <DataTableToolbarFilter column={column} key={column.id} />
+        ))
+      }
+      {
+        isFiltered && (
+          <Button
+            aria-label={t("dataTableTranslations.resetFilters")}
+            className="border-dashed"
+            onClick={onReset}
+            variant="outline"
+          >
+            <X />
+            {t("dataTableTranslations.reset")}
+          </Button>
+        )
+      }
+    </>
+  );
+
   return (
     <div
       aria-orientation="horizontal"
@@ -46,21 +70,19 @@ export function DataTableToolbar<TData>({
       role="toolbar"
       {...props}
     >
-      <div className="hidden flex-1 flex-wrap items-center gap-2 lg:flex">
-        {columns.map((column) => (
-          <DataTableToolbarFilter column={column} key={column.id} />
-        ))}
-        {isFiltered && (
-          <Button
-            aria-label={t("dataTableTranslations.resetFilters")}
-            className="border-dashed"
-            onClick={onReset}
-            variant="outline"
-          >
-            <X />
-            {t("dataTableTranslations.reset")}
+      <DropdownMenu>
+        <DropdownMenuTrigger>
+          <Button variant="outline" className="lg:hidden">
+            <ListFilterPlusIcon />
+            {t("dataTableTranslations.filters")}
           </Button>
-        )}
+        </DropdownMenuTrigger>
+        <DropdownMenuContent className="lg:hidden flex flex-col items-stretch gap-2 p-2 *:w-full max-w-none">
+          {filterItems}
+        </DropdownMenuContent>
+      </DropdownMenu>
+      <div className="hidden flex-1 flex-wrap items-center gap-2 lg:flex">
+        {filterItems}
       </div>
       <div className="flex items-center gap-2">
         {children}

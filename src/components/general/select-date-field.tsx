@@ -12,7 +12,7 @@ import {
     PopoverTrigger,
 } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
-import { useTranslation } from "@/lib/i18n/useTranslation";
+import { useTranslation } from "@/features/core/i18n/useTranslation";
 import { cn } from "@/lib/utils";
 
 export type DateSelection = Date | Date[] | DateRange | undefined;

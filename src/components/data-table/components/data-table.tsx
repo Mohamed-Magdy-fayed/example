@@ -12,7 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useTranslation } from "@/lib/i18n/useTranslation";
+import { useTranslation } from "@/features/core/i18n/useTranslation";
 import { cn } from "@/lib/utils";
 
 interface DataTableProps<TData> extends React.ComponentProps<"div"> {
@@ -30,11 +30,14 @@ export function DataTable<TData>({
   const { t } = useTranslation();
   return (
     <div
-      className={cn("flex w-full flex-col gap-2.5 overflow-auto", className)}
+      className={cn(
+        "flex min-h-0 w-full flex-1 flex-col gap-2.5 overflow-hidden",
+        className,
+      )}
       {...props}
     >
       {children}
-      <div className="overflow-hidden rounded-md border">
+      <div className="flex min-h-0 flex-1 overflow-auto rounded-md border">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (

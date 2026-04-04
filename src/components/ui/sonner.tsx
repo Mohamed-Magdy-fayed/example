@@ -1,11 +1,11 @@
 "use client";
 
 import {
-  AlertTriangle,
-  CheckCircle,
-  Info,
-  Loader,
-  XCircle,
+  CircleCheckIcon,
+  InfoIcon,
+  Loader2Icon,
+  OctagonXIcon,
+  TriangleAlertIcon,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Toaster as Sonner, type ToasterProps } from "sonner";
@@ -17,11 +17,11 @@ const Toaster = ({ ...props }: ToasterProps) => {
     <Sonner
       className="toaster group"
       icons={{
-        success: <CheckCircle className="size-4" strokeWidth={2} />,
-        info: <Info className="size-4" strokeWidth={2} />,
-        warning: <AlertTriangle className="size-4" strokeWidth={2} />,
-        error: <XCircle className="size-4" strokeWidth={2} />,
-        loading: <Loader className="size-4 animate-spin" strokeWidth={2} />,
+        success: <CircleCheckIcon className="size-4" />,
+        info: <InfoIcon className="size-4" />,
+        warning: <TriangleAlertIcon className="size-4" />,
+        error: <OctagonXIcon className="size-4" />,
+        loading: <Loader2Icon className="size-4 animate-spin" />,
       }}
       style={
         {

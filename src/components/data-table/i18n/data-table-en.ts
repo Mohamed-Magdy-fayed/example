@@ -1,4 +1,4 @@
-import { dt, type LanguageMessages } from "@/lib/i18n/lib";
+import { dt, type LanguageMessages } from "@/features/core/i18n/lib";
 
 export default {
     dataTableTranslations: {
@@ -25,8 +25,8 @@ export default {
         sort: "Sort",
         sortBy: "Sort By",
         noSorting: "No sorting applied!",
-        modifySorting: "Modify sorting to organize your rows.",
-        addSorting: "Add sorting to organize your rows.",
+        modifySorting: "Modify sorting to branchanize your rows.",
+        addSorting: "Add sorting to branchanize your rows.",
         addSort: "Add sort",
         resetSorting: "Reset sorting",
         searchFields: "Search fields...",
@@ -42,6 +42,7 @@ export default {
         goToPreviousPage: "Go to previous page",
         goToNextPage: "Go to next page",
         goToLastPage: "Go to last page",
+        filters: "Filters",
         clearFilters: "Clear filters",
         resetFilters: "Reset filters",
     },

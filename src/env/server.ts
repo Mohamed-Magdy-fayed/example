@@ -17,14 +17,15 @@ export const env = createEnv({
 		GOOGLE_CLIENT_SECRET: z.string().min(1),
 		GITHUB_CLIENT_ID: z.string().min(1),
 		GITHUB_CLIENT_SECRET: z.string().min(1),
-		MICROSOFT_CLIENT_ID: z.string().min(1),
-		MICROSOFT_CLIENT_SECRET: z.string().min(1),
 
 		COMMS_NAME: z.string().min(1),
 		COMMS_EMAIL: z.email(),
 		COMMS_EMAIL_PASS: z.string().min(1),
 		COMMS_EMAIL_HOST: z.string().min(1),
 		COMMS_EMAIL_PORT: z.coerce.number().int().positive(),
+
+		WAPILOT_INSTANCE_ID: z.string().min(1),
+		WAPILOT_API_TOKEN: z.string().min(1),
 
 		NODE_ENV: z
 			.enum(["development", "test", "production"])

@@ -9,14 +9,14 @@ import {
 	getOAuthClient,
 	getSessionFromCookie,
 	normalizeEmail,
-} from "@/auth/core";
+} from "@/features/core/auth/core";
 import {
 	type OAuthProvider,
 	oAuthProviderValues,
 	UserOAuthAccountsTable,
 	UsersTable,
-} from "@/auth/tables";
-import type { PartialUser } from "@/auth/types";
+} from "@/features/core/auth/tables";
+import type { PartialUser } from "@/features/core/auth/types";
 import { db } from "@/server/db";
 
 export async function GET(
@@ -101,7 +101,7 @@ function connectUserToAccount(
 			? await trx.query.UsersTable.findFirst({
 				columns: {
 					id: true,
-					emailVerified: true,
+					emailVerifiedAt: true,
 					role: true,
 					name: true,
 					email: true,
@@ -113,7 +113,7 @@ function connectUserToAccount(
 			: await trx.query.UsersTable.findFirst({
 				columns: {
 					id: true,
-					emailVerified: true,
+					emailVerifiedAt: true,
 					role: true,
 					name: true,
 					email: true,
@@ -131,8 +131,9 @@ function connectUserToAccount(
 				.values({
 					name,
 					email: normalizedEmail,
-					emailVerified: new Date(),
-					role: "user",
+					emailVerifiedAt: new Date(),
+					role: "customer",
+					createdBy: "system",
 				})
 				.returning({
 					id: UsersTable.id,
@@ -141,7 +142,7 @@ function connectUserToAccount(
 					email: UsersTable.email,
 					phone: UsersTable.phone,
 					imageUrl: UsersTable.imageUrl,
-					emailVerified: UsersTable.emailVerified,
+					emailVerifiedAt: UsersTable.emailVerifiedAt,
 				});
 
 			if (newUser == null) {
@@ -162,10 +163,10 @@ function connectUserToAccount(
 				throw new Error("This OAuth account is already linked to another user");
 			}
 
-			if (user.emailVerified == null) {
+			if (user.emailVerifiedAt == null) {
 				await trx
 					.update(UsersTable)
-					.set({ emailVerified: new Date() })
+					.set({ emailVerifiedAt: new Date() })
 					.where(eq(UsersTable.id, user.id));
 			}
 		}

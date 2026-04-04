@@ -1,4 +1,6 @@
-export * from "@/auth/tables";
+export * from "@/features/core/auth/tables";
+export * from "./schemas/customer/messages-table";
+export * from "./schemas/customer/subscribers-table";
 
 import {
     integer,
@@ -8,7 +10,7 @@ import {
     text,
     timestamp,
 } from "drizzle-orm/pg-core";
-import { createdAt, createdBy } from "@/auth/tables/schema-helpers";
+import { createdAt, createdBy } from "@/server/db/schemas/helpers";
 
 export const taskStatusValues = [
     "backlog",

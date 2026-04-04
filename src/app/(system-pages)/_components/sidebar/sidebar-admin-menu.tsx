@@ -6,8 +6,6 @@ import { usePathname } from "next/navigation";
 import { type ComponentProps, useMemo } from "react";
 
 import { useMainNavLinks } from "@/app/(system-pages)/_components/sidebar/sidebar-admin-data";
-import { hasPermission } from "@/auth/core";
-import { useAuth } from "@/auth/nextjs/components/auth-provider";
 import {
     Collapsible,
     CollapsibleContent,
@@ -31,6 +29,8 @@ import {
     SidebarMenuSubItem,
 } from "@/components/ui/sidebar";
 import WrapWithTooltip from "@/components/wrap-with-tooltip";
+import { hasPermission } from "@/features/core/auth/core";
+import { useAuth } from "@/features/core/auth/nextjs/components/auth-provider";
 import { cn } from "@/lib/utils";
 
 export default function SidebarAdminMenu({
@@ -330,8 +330,9 @@ export default function SidebarAdminMenu({
                 </div>
                 {/* Dropdown (Collapsed/rail) */}
                 <div className="hidden group-data-[collapsible=icon]:block">
-                    {allowedNavLinks
-                        .map((item) => renderDropdownMenuForItem(item, pathname))}
+                    {allowedNavLinks.map((item) =>
+                        renderDropdownMenuForItem(item, pathname),
+                    )}
                 </div>
             </SidebarMenu>
         </div>

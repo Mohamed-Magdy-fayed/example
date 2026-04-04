@@ -14,5 +14,3 @@
 - **Client auth usage**: In client components, call `useAuth()` from [src/auth/nextjs/components/auth-provider.tsx](src/auth/nextjs/components/auth-provider.tsx); it throws if provider is missing. For server actions requiring auth, use `getCurrentUser({withFullUser?, redirectIfNotFound?})` from currentUser helper or `protectedProcedure` in tRPC.
 - **Internationalized UX**: When changing locale on the client, `useTranslation` updates document `dir` immediately and triggers `setLocaleCookie` in a transition to avoid UI stalls.
 - **General patterns**: Avoid NextAuth assumptions; sessions are custom. Keep database access through Drizzle `db` from server/db/index. Prefer server actions for mutations (auth/i18n) and tRPC procedures for API; ensure new routes/components respect locale and permission checks.
-
-If anything here is unclear or missing for your workflow, tell me what to add or adjust and I’ll update this guide.

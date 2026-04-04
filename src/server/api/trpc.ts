@@ -2,7 +2,7 @@ import { initTRPC, TRPCError } from "@trpc/server";
 import { cookies } from "next/headers";
 import superjson from "superjson";
 import z, { ZodError } from "zod";
-import { getSessionFromCookie } from "@/auth/core";
+import { getSessionFromCookie } from "@/features/core/auth/core";
 import { db } from "@/server/db";
 
 /**

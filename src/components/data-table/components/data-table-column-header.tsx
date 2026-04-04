@@ -17,7 +17,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useTranslation } from "@/lib/i18n/useTranslation";
+import { useTranslation } from "@/features/core/i18n/useTranslation";
 import { cn } from "@/lib/utils";
 
 interface DataTableColumnHeaderProps<TData, TValue>
@@ -60,7 +60,7 @@ export function DataTableColumnHeader<TData, TValue>({
           <>
             <DropdownMenuCheckboxItem
               checked={column.getIsSorted() === "asc"}
-              className="relative pe-8 ps-2 [&>span:first-child]:end-2 [&>span:first-child]:start-auto [&_svg]:text-foreground"
+              className="relative ps-2 pe-8 [&>span:first-child]:start-auto [&>span:first-child]:end-2 [&_svg]:text-foreground"
               onClick={() => column.toggleSorting(false)}
             >
               <ChevronUp />
@@ -68,7 +68,7 @@ export function DataTableColumnHeader<TData, TValue>({
             </DropdownMenuCheckboxItem>
             <DropdownMenuCheckboxItem
               checked={column.getIsSorted() === "desc"}
-              className="relative pe-8 ps-2 [&>span:first-child]:end-2 [&>span:first-child]:start-auto [&_svg]:text-foreground"
+              className="relative ps-2 pe-8 [&>span:first-child]:start-auto [&>span:first-child]:end-2 [&_svg]:text-foreground"
               onClick={() => column.toggleSorting(true)}
             >
               <ChevronDown />
@@ -88,7 +88,7 @@ export function DataTableColumnHeader<TData, TValue>({
         {column.getCanHide() && (
           <DropdownMenuCheckboxItem
             checked={!column.getIsVisible()}
-            className="relative pe-8 ps-2 [&>span:first-child]:end-2 [&>span:first-child]:start-auto [&_svg]:text-muted-foreground"
+            className="relative ps-2 pe-8 [&>span:first-child]:start-auto [&>span:first-child]:end-2 [&_svg]:text-muted-foreground"
             onClick={() => column.toggleVisibility(false)}
           >
             <EyeOff />

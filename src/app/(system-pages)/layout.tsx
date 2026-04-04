@@ -1,5 +1,5 @@
 import SidebarAdminMenu from "@/app/(system-pages)/_components/sidebar/sidebar-admin-menu";
-import { SidebarOrganization } from "@/app/(system-pages)/_components/sidebar/sidebar-organization";
+import { SidebarBranch } from "@/app/(system-pages)/_components/sidebar/sidebar-branch";
 import { SidebarUser } from "@/app/(system-pages)/_components/sidebar/sidebar-user";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -15,7 +15,7 @@ import {
     SidebarSeparator,
     SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { getT } from "@/lib/i18n/actions";
+import { getT } from "@/features/core/i18n/actions";
 
 export default async function SystemPagesLayout({
     children,
@@ -29,12 +29,11 @@ export default async function SystemPagesLayout({
         <SidebarProvider>
             <Sidebar
                 collapsible="icon"
-                dir={dir}
-                side={locale === "ar" ? "right" : "left"}
+                side="left"
                 variant="inset"
             >
                 <SidebarHeader>
-                    <SidebarOrganization />
+                    <SidebarBranch />
                     <SidebarSeparator className="mx-0" />
                 </SidebarHeader>
                 <SidebarContent className="px-1">
@@ -57,7 +56,9 @@ export default async function SystemPagesLayout({
                         <Separator orientation="vertical" />
                     </div>
                 </header>
-                {children}
+                <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+                    {children}
+                </div>
             </SidebarInset>
         </SidebarProvider>
     );

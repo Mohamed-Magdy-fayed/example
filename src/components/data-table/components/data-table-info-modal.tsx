@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import { H3 } from "@/components/ui/typography";
-import { useTranslation } from "@/lib/i18n/useTranslation";
+import { useTranslation } from "@/features/core/i18n/useTranslation";
 
 interface DataTableInfoModalProps<TData> {
     open: boolean;
