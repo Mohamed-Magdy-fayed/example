@@ -1,44 +1,47 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { type FormEvent, useCallback, useMemo, useState, useTransition } from "react";
+import {
+    type FormEvent,
+    useCallback,
+    useMemo,
+    useState,
+    useTransition,
+} from "react";
 import { toast } from "sonner";
 
 import { useAppForm } from "@/components/forms/hooks";
 import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
 import {
-    Field,
     FieldDescription,
-    FieldError,
     FieldGroup,
-    FieldLabel,
     FieldSet,
 } from "@/components/ui/field";
-import { InputGroup, InputGroupInput } from "@/components/ui/input-group";
+import {
+    InputOTP,
+    InputOTPGroup,
+    InputOTPSeparator,
+    InputOTPSlot,
+} from "@/components/ui/input-otp";
+import {
+    beginPhoneChangeAction,
+    confirmPhoneChangeAction,
+} from "@/features/core/auth/nextjs/actions";
 import { useAuth } from "@/features/core/auth/nextjs/components/auth-provider";
 import {
     beginPhoneChangeSchema,
     confirmPhoneChangeSchema,
 } from "@/features/core/auth/schemas";
 import { useTranslation } from "@/features/core/i18n/useTranslation";
-import { api } from "@/trpc/react";
-import { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot } from "@/components/ui/input-otp";
 
 type Step = "begin" | "confirm";
 
-export function ChangePhoneForm({
-    onDone,
-}: {
-    onDone?: () => void;
-}) {
+export function ChangePhoneForm({ onDone }: { onDone?: () => void }) {
     const { t } = useTranslation();
     const router = useRouter();
     const { session } = useAuth();
     const currentPhone = session?.user.phone ?? "";
-
-    const beginMutation = api.auth.phone.beginChange.useMutation();
-    const confirmMutation = api.auth.phone.confirmChange.useMutation();
 
     const [step, setStep] = useState<Step>("begin");
     const [pendingPhone, setPendingPhone] = useState<string>("");
@@ -52,11 +55,10 @@ export function ChangePhoneForm({
         onSubmit: async ({ value }) => {
             startTransition(async () => {
                 try {
-                    const res = await beginMutation.mutateAsync({ phone: value.phone });
-                    if (!res.sent) {
+                    const res = await beginPhoneChangeAction({ phone: value.phone });
+                    if (res.isError) {
                         toast.error(
-                            res.message ??
-                            t("authTranslations.profile.phone.error.invalid"),
+                            res.message ?? t("authTranslations.profile.phone.error.invalid"),
                         );
                         return;
                     }
@@ -88,11 +90,11 @@ export function ChangePhoneForm({
         onSubmit: async ({ value }) => {
             startTransition(async () => {
                 try {
-                    const res = await confirmMutation.mutateAsync({
+                    const res = await confirmPhoneChangeAction({
                         phone: value.phone,
                         otp: value.otp,
                     });
-                    if (!res.changed) {
+                    if (res.isError) {
                         toast.error(
                             res.message ??
                             t("authTranslations.profile.phone.error.otpInvalid"),
@@ -141,7 +143,7 @@ export function ChangePhoneForm({
 
     return (
         <div className="space-y-6">
-            <p className="text-sm text-muted-foreground">{description}</p>
+            <p className="text-muted-foreground text-sm">{description}</p>
 
             {step === "begin" ? (
                 <form className="space-y-5" onSubmit={handleBeginSubmit}>
@@ -169,14 +171,12 @@ export function ChangePhoneForm({
                     </FieldSet>
                 </form>
             ) : (
-                <form
-                    className="space-y-5"
-                    onSubmit={handleConfirmSubmit}
-                >
+                <form className="space-y-5" onSubmit={handleConfirmSubmit}>
                     <FieldSet disabled={isPending}>
                         <FieldGroup>
                             <FieldDescription className="text-start text-muted-foreground text-sm">
-                                {t("authTranslations.profile.phone.verifyingFor")} {pendingPhone}
+                                {t("authTranslations.profile.phone.verifyingFor")}{" "}
+                                {pendingPhone}
                             </FieldDescription>
                             <confirmForm.AppField name="phone">
                                 {(field) => (
@@ -190,27 +190,28 @@ export function ChangePhoneForm({
 
                             <div dir="ltr">
                                 <confirmForm.AppField name="otp">
-                                    {(field) => <InputOTP
-                                        autoFocus
-                                        containerClassName="justify-center"
-                                        disabled={isPending}
-                                        maxLength={6}
-                                        onChange={(val) => field.handleChange(val)}
-                                        value={field.state.value}
-                                    >
-                                        <InputOTPGroup>
-                                            <InputOTPSlot index={0} />
-                                            <InputOTPSlot index={1} />
-                                            <InputOTPSlot index={2} />
-                                        </InputOTPGroup>
-                                        <InputOTPSeparator />
-                                        <InputOTPGroup>
-                                            <InputOTPSlot index={3} />
-                                            <InputOTPSlot index={4} />
-                                            <InputOTPSlot index={5} />
-                                        </InputOTPGroup>
-                                    </InputOTP>
-                                    }
+                                    {(field) => (
+                                        <InputOTP
+                                            autoFocus
+                                            containerClassName="justify-center"
+                                            disabled={isPending}
+                                            maxLength={6}
+                                            onChange={(val) => field.handleChange(val)}
+                                            value={field.state.value}
+                                        >
+                                            <InputOTPGroup>
+                                                <InputOTPSlot index={0} />
+                                                <InputOTPSlot index={1} />
+                                                <InputOTPSlot index={2} />
+                                            </InputOTPGroup>
+                                            <InputOTPSeparator />
+                                            <InputOTPGroup>
+                                                <InputOTPSlot index={3} />
+                                                <InputOTPSlot index={4} />
+                                                <InputOTPSlot index={5} />
+                                            </InputOTPGroup>
+                                        </InputOTP>
+                                    )}
                                 </confirmForm.AppField>
                             </div>
                         </FieldGroup>

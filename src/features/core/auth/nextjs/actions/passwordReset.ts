@@ -1,12 +1,16 @@
 "use server";
 
 import crypto from "crypto";
-import { and, eq, gt, isNull } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
+import { redirect } from "next/navigation";
 import type { z } from "zod";
-import { normalizeEmail } from "@/features/core/auth/core/helpers";
-import { generateSalt, hashPassword } from "@/features/core/auth/core/passwordHasher";
+import { db } from "@/drizzle";
+import { env } from "@/env/server";
+import {
+    generateSalt,
+    hashPassword,
+} from "@/features/core/auth/core/passwordHasher";
 import { hashTokenValue } from "@/features/core/auth/core/token";
-import { sendPasswordResetCodeEmail } from "@/features/core/auth/nextjs/emails";
 import {
     passwordResetRequestSchema,
     passwordResetSubmissionSchema,
@@ -18,10 +22,8 @@ import {
 } from "@/features/core/auth/tables";
 import type { TypedResponse } from "@/features/core/auth/types";
 import { getT } from "@/features/core/i18n/actions";
-import { db } from "@/server/db";
-import { rateLimitOTP, sendPhoneOtp, toChatId } from "@/server/whatsapp/otp";
-import { sendText } from "@/server/whatsapp/wapilot-api";
-import { env } from "@/env/server";
+import { rateLimitOTP, toChatId } from "@/integrations/whatsapp/otp";
+import { sendText } from "@/integrations/whatsapp/wapilot-api";
 
 const PASSWORD_RESET_OTP_LENGTH = 6;
 const PASSWORD_RESET_OTP_TTL_MS = 1000 * 60 * 10; // 10 minutes
@@ -58,7 +60,7 @@ export async function requestPasswordResetAction(
 
     // Avoid account enumeration
     if (!user || !user.phone) {
-        return { isError: false };
+        redirect(`/reset-password?phone=${encodeURIComponent(parsed.data.phone)}`);
     }
 
     const otp = generateResetOtp();
@@ -93,7 +95,7 @@ export async function requestPasswordResetAction(
             params: {
                 chat_id: toChatId(parsed.data.phone),
                 text: `Your password reset code is: ${otp}\n\nThis code expires in 10 minutes.`,
-            }
+            },
         });
     } catch {
         // Best-effort cleanup to prevent dangling usable tokens
@@ -106,7 +108,7 @@ export async function requestPasswordResetAction(
         };
     }
 
-    return { isError: false };
+    redirect(`/reset-password?phone=${encodeURIComponent(parsed.data.phone)}`);
 }
 
 export async function resetPasswordAction(
@@ -152,10 +154,7 @@ export async function resetPasswordAction(
     const metadata = (tokenRecord.metadata ?? {}) as {
         phone?: unknown;
     };
-    const tokenPhone =
-        typeof metadata.phone === "string"
-            ? metadata.phone
-            : null;
+    const tokenPhone = typeof metadata.phone === "string" ? metadata.phone : null;
     if (tokenPhone && tokenPhone !== parsed.data.phone) {
         return {
             isError: true,
@@ -217,5 +216,5 @@ export async function resetPasswordAction(
         };
     }
 
-    return { isError: false };
+    redirect("/sign-in?reset=success");
 }

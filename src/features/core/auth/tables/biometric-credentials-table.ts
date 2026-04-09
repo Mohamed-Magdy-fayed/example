@@ -9,9 +9,8 @@ import {
 	uniqueIndex,
 	uuid,
 } from "drizzle-orm/pg-core";
-
+import { createdAt, id, updatedAt } from "@/drizzle/schemas/helpers";
 import { UsersTable } from "./";
-import { createdAt, id, updatedAt } from "@/server/db/schemas/helpers";
 
 export const BiometricCredentialsTable = pgTable(
 	"biometric_credentials",
@@ -53,4 +52,5 @@ export const biometricCredentialsRelations = relations(
 );
 
 export type BiometricCredential = typeof BiometricCredentialsTable.$inferSelect;
-export type NewBiometricCredential = typeof BiometricCredentialsTable.$inferInsert;
+export type NewBiometricCredential =
+	typeof BiometricCredentialsTable.$inferInsert;

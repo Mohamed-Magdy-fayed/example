@@ -33,7 +33,7 @@ export const unrestricted = {
   delete: true,
 };
 
-export const screenKeys = ["dashboard", "my-account", "employee"] as const;
+export const screenKeys = ["dashboard", "my-account", "employee", "test"] as const;
 export type ScreenKey = (typeof screenKeys)[number];
 
 export const rolesPermissions = {
@@ -41,7 +41,7 @@ export const rolesPermissions = {
     users: unrestricted,
     screens: unrestricted,
   },
-  user: {
+  employee: {
     screens: {
       view: true,
     },

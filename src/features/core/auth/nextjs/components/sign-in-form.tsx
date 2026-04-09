@@ -5,18 +5,19 @@ import {
 	startAuthentication,
 } from "@simplewebauthn/browser";
 import { ArrowLeftIcon, FingerprintIcon } from "lucide-react";
-import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Activity, useState, useTransition } from "react";
+import { Activity, useEffect, useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
 
 import { useAppForm } from "@/components/forms/hooks";
+import { LinkButton } from "@/components/general/link-button";
 import { Button } from "@/components/ui/button";
 import {
 	FieldDescription,
 	FieldSeparator,
 	FieldSet,
 } from "@/components/ui/field";
+import { H1, Muted } from "@/components/ui/typography";
 import {
 	beginPasskeyAuthenticationAction,
 	completePasskeyAuthenticationAction,
@@ -30,7 +31,6 @@ import {
 	oAuthProviderValues,
 } from "@/features/core/auth/tables";
 import { useTranslation } from "@/features/core/i18n/useTranslation";
-import { H1, Muted } from "@/components/ui/typography";
 
 export function SignInForm() {
 	const { t } = useTranslation();
@@ -39,6 +39,15 @@ export function SignInForm() {
 	const [error, setError] = useState<string | null>(null);
 	const searchParams = useSearchParams();
 	const getOauthProviderIcon = useOauthProviderIcon();
+	const resetToastShownRef = useRef(false);
+
+	useEffect(() => {
+		if (searchParams.get("reset") !== "success") return;
+		if (resetToastShownRef.current) return;
+
+		resetToastShownRef.current = true;
+		toast.success(t("authTranslations.passwordReset.reset.success"));
+	}, [searchParams, t]);
 
 	const form = useAppForm({
 		defaultValues: { phone: "", password: "" },
@@ -106,7 +115,9 @@ export function SignInForm() {
 		setStep("password");
 
 		setTimeout(() => {
-			const passwordInput = document.getElementById("password") as HTMLInputElement;
+			const passwordInput = document.getElementById(
+				"password",
+			) as HTMLInputElement;
 			passwordInput?.focus();
 		}, 100);
 	}
@@ -119,6 +130,7 @@ export function SignInForm() {
 
 	return (
 		<form
+			className="space-y-4"
 			onSubmit={(e) => {
 				e.preventDefault();
 				if (step === "phone") {
@@ -127,15 +139,10 @@ export function SignInForm() {
 					form.handleSubmit();
 				}
 			}}
-			className="space-y-4"
 		>
 			<div className="space-y-2 text-center">
-				<H1>
-					{t("authTranslations.signIn.title")}
-				</H1>
-				<Muted>
-					{t("authTranslations.signIn.description")}
-				</Muted>
+				<H1>{t("authTranslations.signIn.title")}</H1>
+				<Muted>{t("authTranslations.signIn.description")}</Muted>
 			</div>
 
 			{error && (
@@ -219,11 +226,9 @@ export function SignInForm() {
 					</form.AppField>
 
 					<div className="flex w-full justify-end">
-						<Button asChild size="sm" variant="link">
-							<Link href="/forgot-password">
-								{t("authTranslations.signIn.forgotPassword")}
-							</Link>
-						</Button>
+						<LinkButton href="/forgot-password" size="sm" variant="link">
+							{t("authTranslations.signIn.forgotPassword")}
+						</LinkButton>
 					</div>
 
 					<div className="flex items-center gap-2">
@@ -257,11 +262,9 @@ export function SignInForm() {
 
 			<FieldDescription className="text-center">
 				{t("authTranslations.signIn.noAccount")}{" "}
-				<Button asChild variant={"link"} className="ps-0">
-					<Link href={"/sign-up"}>
-						{t("authTranslations.signIn.toSignUp")}
-					</Link>
-				</Button>
+				<LinkButton className="ps-0" href="/sign-up" variant="link">
+					{t("authTranslations.signIn.toSignUp")}
+				</LinkButton>
 			</FieldDescription>
 		</form>
 	);

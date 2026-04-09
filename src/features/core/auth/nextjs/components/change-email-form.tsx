@@ -1,6 +1,14 @@
 "use client";
 
-import { type FormEvent, useCallback, useMemo, useState, useTransition } from "react";
+import {
+	type FormEvent,
+	useCallback,
+	useMemo,
+	useState,
+	useTransition,
+} from "react";
+import { toast } from "sonner";
+import { useAppForm } from "@/components/forms/hooks";
 import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
 import {
@@ -12,12 +20,10 @@ import {
 	FieldSet,
 } from "@/components/ui/field";
 import { InputGroup, InputGroupInput } from "@/components/ui/input-group";
-import { useAppForm } from "@/components/forms/hooks";
+import { beginEmailChangeAction } from "@/features/core/auth/nextjs/actions";
 import { useAuth } from "@/features/core/auth/nextjs/components/auth-provider";
 import { changeEmailSchema } from "@/features/core/auth/schemas";
 import { useTranslation } from "@/features/core/i18n/useTranslation";
-import { api } from "@/trpc/react";
-import { toast } from "sonner";
 
 export function ChangeEmailForm() {
 	const { t } = useTranslation();
@@ -28,7 +34,6 @@ export function ChangeEmailForm() {
 	const [status, setStatus] = useState<"idle" | "sent">("idle");
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
 	const [isPending, startTransition] = useTransition();
-	const beginChange = api.auth.email.beginChange.useMutation();
 
 	const form = useAppForm({
 		defaultValues: {
@@ -44,18 +49,15 @@ export function ChangeEmailForm() {
 				setErrorMessage(null);
 				setStatus("idle");
 				try {
-					const res = await beginChange.mutateAsync(value);
-					if (!res.sent) {
+					const res = await beginEmailChangeAction(value);
+					if (res.isError) {
 						setErrorMessage(
-							res.message ??
-							t("authTranslations.profile.email.error.generic"),
+							res.message ?? t("authTranslations.profile.email.error.generic"),
 						);
 						return;
 					}
 					setStatus("sent");
-					toast.success(
-						t("authTranslations.emailVerification.sent"),
-					);
+					toast.success(t("authTranslations.emailVerification.sent"));
 				} catch (error) {
 					setErrorMessage(
 						error instanceof Error
@@ -77,7 +79,8 @@ export function ChangeEmailForm() {
 
 	const description = useMemo(() => {
 		if (errorMessage) return errorMessage;
-		if (status === "sent") return t("authTranslations.profile.email.checkInbox");
+		if (status === "sent")
+			return t("authTranslations.profile.email.checkInbox");
 		return hasEmail
 			? t("authTranslations.profile.email.description")
 			: t("authTranslations.profile.email.addDescription");
@@ -124,8 +127,7 @@ export function ChangeEmailForm() {
 					<form.AppField name="currentPassword">
 						{(field) => {
 							const isInvalid =
-								field.state.meta.isTouched &&
-								!field.state.meta.isValid;
+								field.state.meta.isTouched && !field.state.meta.isValid;
 							const errors = field.state.meta.errors.flatMap((error) => {
 								if (!error) return [];
 								if (typeof error === "string") return [{ message: error }];
@@ -135,22 +137,18 @@ export function ChangeEmailForm() {
 							return (
 								<Field data-invalid={isInvalid}>
 									<FieldLabel htmlFor={field.name}>
-										{t(
-											"authTranslations.profile.email.currentPasswordLabel",
-										)}
+										{t("authTranslations.profile.email.currentPasswordLabel")}
 									</FieldLabel>
 									<InputGroup>
 										<InputGroupInput
+											aria-invalid={isInvalid}
 											autoComplete="current-password"
 											id={field.name}
 											name={field.name}
 											onBlur={field.handleBlur}
-											onChange={(e) =>
-												field.handleChange(e.target.value)
-											}
+											onChange={(e) => field.handleChange(e.target.value)}
 											type="password"
 											value={field.state.value}
-											aria-invalid={isInvalid}
 										/>
 									</InputGroup>
 									<FieldError errors={errors} />

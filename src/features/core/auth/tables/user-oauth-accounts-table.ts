@@ -10,7 +10,7 @@ import {
 	uuid,
 } from "drizzle-orm/pg-core";
 
-import { createdAt, updatedAt } from "@/server/db/schemas/helpers";
+import { createdAt, updatedAt } from "@/drizzle/schemas/helpers";
 import { UsersTable } from "./users-table";
 
 export const oAuthProviderValues = ["google", "github"] as const;

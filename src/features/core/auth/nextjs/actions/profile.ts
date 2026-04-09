@@ -1,9 +1,10 @@
 "use server";
 
 import { eq } from "drizzle-orm";
+import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import type { z } from "zod";
-
+import { db } from "@/drizzle";
 import { refreshSession } from "@/features/core/auth/core";
 import {
     comparePasswords,
@@ -11,11 +12,42 @@ import {
     hashPassword,
 } from "@/features/core/auth/core/passwordHasher";
 import { getCurrentUser } from "@/features/core/auth/nextjs/currentUser";
-import { changePasswordSchema, createPasswordSchema } from "@/features/core/auth/schemas";
-import { UserCredentialsTable } from "@/features/core/auth/tables";
+import {
+    changePasswordSchema,
+    createPasswordSchema,
+    updateProfileSchema,
+} from "@/features/core/auth/schemas";
+import { UserCredentialsTable, UsersTable } from "@/features/core/auth/tables";
 import type { TypedResponse } from "@/features/core/auth/types";
 import { getT } from "@/features/core/i18n/actions";
-import { db } from "@/server/db";
+
+export async function updateProfileNameAction(
+    rawInput: z.infer<typeof updateProfileSchema>,
+): Promise<TypedResponse<{ updated: true; message: string }>> {
+    const { t } = await getT();
+    const { id: userId } = await getCurrentUser({ redirectIfNotFound: true });
+
+    const parsed = updateProfileSchema.safeParse(rawInput);
+    if (!parsed.success) {
+        return {
+            isError: true,
+            message: t("authTranslations.profile.error.invalidInput"),
+        };
+    }
+
+    await db
+        .update(UsersTable)
+        .set({ name: parsed.data.name.trim() })
+        .where(eq(UsersTable.id, userId));
+
+    revalidatePath("/");
+
+    return {
+        isError: false,
+        updated: true,
+        message: t("authTranslations.profile.form.submit"),
+    };
+}
 
 export async function changePasswordAction(
     rawInput: z.infer<typeof changePasswordSchema>,

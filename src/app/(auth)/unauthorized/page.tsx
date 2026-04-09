@@ -13,12 +13,14 @@ export default async function UnauthorizedPage() {
                 {t("authTranslations.accessDenied")}
             </Badge>
             <ShieldBanIcon className="m-4" size={200} />
-            <Button asChild>
-                <Link href="/">
-                    <HomeIcon />
-                    {t("authTranslations.backToHome")}
-                </Link>
-            </Button>
+            <Button
+                render={
+                    <Link href="/">
+                        <HomeIcon />
+                        {t("authTranslations.backToHome")}
+                    </Link>
+                }
+            />
         </div>
     );
 }

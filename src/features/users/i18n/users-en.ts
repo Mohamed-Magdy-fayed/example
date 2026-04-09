@@ -10,22 +10,22 @@ export default {
             name: {
                 label: "Name",
                 searchPlaceholder: "Search by name",
-                placeholder: "Enter user name",
+                placeholder: "Enter employee name",
             },
             email: {
                 label: "Email",
                 searchPlaceholder: "Search by email",
-                placeholder: "Enter user email",
+                placeholder: "Enter employee email",
             },
             phone: {
                 label: "Phone",
                 searchPlaceholder: "Search by phone",
-                placeholder: "Enter user phone",
+                placeholder: "Enter employee phone",
             },
             role: {
                 label: "Role",
                 searchPlaceholder: "Filter by role",
-                placeholder: "Select user role",
+                placeholder: "Select employee role",
                 filterValues: dt("{role:enum}", {
                     enum: {
                         role: {
@@ -56,12 +56,12 @@ export default {
             },
         },
         actions: {
-            error: dt("Failed to {action:enum} user. Please try again.", {
+            error: dt("Failed to {action:enum} employee. Please try again.", {
                 enum: { action: { create: "create", update: "update", delete: "delete" } }
             }),
             success: dt("{length:plural} {action:enum} successfully.", {
                 enum: { action: { create: "created", update: "updated", delete: "deleted" } },
-                plural: { length: { one: "user", other: "users" } }
+                plural: { length: { one: "employee", other: "employees" } }
             }),
         },
         form: {

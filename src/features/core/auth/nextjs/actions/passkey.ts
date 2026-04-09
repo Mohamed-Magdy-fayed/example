@@ -17,11 +17,13 @@ import { and, desc, eq } from "drizzle-orm";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { db } from "@/drizzle";
 import { env } from "@/env/server";
 import { createSession } from "@/features/core/auth/core";
 import { normalizeEmail } from "@/features/core/auth/core/helpers";
 import { hashTokenValue } from "@/features/core/auth/core/token";
 import { getCurrentUser } from "@/features/core/auth/nextjs/currentUser";
+import { phoneSchema } from "@/features/core/auth/schemas";
 import {
     BiometricCredentialsTable,
     UsersTable,
@@ -35,8 +37,6 @@ import type {
     TypedResponse,
 } from "@/features/core/auth/types";
 import { getT } from "@/features/core/i18n/actions";
-import { db } from "@/server/db";
-import { phoneSchema } from "@/features/core/auth/schemas";
 
 const PASSKEY_CHALLENGE_TTL_MS = 1000 * 60 * 10;
 const EXPECTED_ORIGIN = new URL(env.BASE_URL).origin;

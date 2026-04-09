@@ -1,21 +1,23 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { SaveIcon } from "lucide-react";
 import { useTransition } from "react";
 import { toast } from "sonner";
-
 import { useAppForm } from "@/components/forms/hooks";
+import { BackLink } from "@/components/general/back-link";
 import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
+import { FieldSet } from "@/components/ui/field";
+import {
+    InputOTP,
+    InputOTPGroup,
+    InputOTPSeparator,
+    InputOTPSlot,
+} from "@/components/ui/input-otp";
+import { LoadingSwap } from "@/components/ui/loading-swap";
 import { resetPasswordAction } from "@/features/core/auth/nextjs/actions";
 import { passwordResetSubmissionSchema } from "@/features/core/auth/schemas";
 import { useTranslation } from "@/features/core/i18n/useTranslation";
-import { InputOTP, InputOTPGroup, InputOTPSlot, InputOTPSeparator } from "@/components/ui/input-otp";
-import { FieldSet } from "@/components/ui/field";
-import { BackLink } from "@/components/general/back-link";
-import { Spinner } from "@/components/ui/spinner";
-import { SaveIcon } from "lucide-react";
-import { LoadingSwap } from "@/components/ui/loading-swap";
 
 export function ResetPasswordForm({
     initialPhone = "",
@@ -24,7 +26,6 @@ export function ResetPasswordForm({
 }) {
     const { t } = useTranslation();
     const [isPending, startTransition] = useTransition();
-    const router = useRouter();
 
     const form = useAppForm({
         defaultValues: { phone: initialPhone, otp: "", password: "" },
@@ -36,18 +37,18 @@ export function ResetPasswordForm({
                     toast.error(res.message);
                     return;
                 }
-
-                toast.success(t("authTranslations.passwordReset.reset.success"));
-                router.push(`/sign-in`);
             });
         },
     });
 
     return (
-        <form className="space-y-6" onSubmit={(e) => {
-            e.preventDefault();
-            form.handleSubmit();
-        }}>
+        <form
+            className="space-y-6"
+            onSubmit={(e) => {
+                e.preventDefault();
+                form.handleSubmit();
+            }}
+        >
             <FieldSet disabled={isPending}>
                 <form.AppField name="phone">
                     {(field) => (
@@ -89,16 +90,14 @@ export function ResetPasswordForm({
                 <form.AppField name="password">
                     {(field) => (
                         <field.PasswordField
-                            label={t(
-                                "authTranslations.passwordReset.newPasswordLabel",
-                            )}
+                            label={t("authTranslations.passwordReset.newPasswordLabel")}
                             placeholder={t("authTranslations.passwordPlaceholder")}
                         />
                     )}
                 </form.AppField>
             </FieldSet>
             <ButtonGroup>
-                <BackLink variant={"outline"} href="/forgot-password" />
+                <BackLink href="/forgot-password" variant={"outline"} />
                 <Button disabled={isPending} type="submit">
                     <LoadingSwap isLoading={isPending}>
                         <SaveIcon />

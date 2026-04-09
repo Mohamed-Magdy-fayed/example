@@ -1,10 +1,9 @@
 "use client";
 
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { LinkButton } from "@/components/general/link-button";
 import { H2, P } from "@/components/ui/typography";
-import { useScrollAnimation } from "@/hooks/use-animation";
 import { useTranslation } from "@/features/core/i18n/useTranslation";
+import { useScrollAnimation } from "@/hooks/use-animation";
 
 export function AboutCtaSection() {
     const { t } = useTranslation();
@@ -14,26 +13,32 @@ export function AboutCtaSection() {
         <section className="py-20">
             <div className="container mx-auto px-4 text-center">
                 <div
-                    ref={ctaAnimation.elementRef}
-                    className={`max-w-3xl mx-auto transition-all duration-1000 ${ctaAnimation.isVisible
-                        ? "opacity-100 translate-y-0"
-                        : "opacity-0 translate-y-10"
+                    className={`mx-auto max-w-3xl transition-all duration-1000 ${ctaAnimation.isVisible
+                            ? "translate-y-0 opacity-100"
+                            : "translate-y-10 opacity-0"
                         }`}
+                    ref={ctaAnimation.elementRef}
                 >
                     <H2 className="mb-6">{t("about.cta.title")}</H2>
-                    <P className="text-muted-foreground mb-8">{t("about.cta.description")}</P>
-                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                        <Button size="lg" asChild className="hover:scale-105 transition-transform duration-300">
-                            <Link href="/contact">{t("about.cta.primaryButton")}</Link>
-                        </Button>
-                        <Button
+                    <P className="mb-8 text-muted-foreground">
+                        {t("about.cta.description")}
+                    </P>
+                    <div className="flex flex-col justify-center gap-4 sm:flex-row">
+                        <LinkButton
+                            className="transition-transform duration-300 hover:scale-105"
+                            href="/contact"
+                            size="lg"
+                        >
+                            {t("about.cta.primaryButton")}
+                        </LinkButton>
+                        <LinkButton
+                            className="transition-transform duration-300 hover:scale-105"
+                            href="/projects"
                             size="lg"
                             variant="outline"
-                            asChild
-                            className="hover:scale-105 transition-transform duration-300"
                         >
-                            <Link href="/projects">{t("about.cta.secondaryButton")}</Link>
-                        </Button>
+                            {t("about.cta.secondaryButton")}
+                        </LinkButton>
                     </div>
                 </div>
             </div>

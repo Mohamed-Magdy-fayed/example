@@ -1,9 +1,10 @@
 "use client";
 
 import { CalendarIcon, XCircle } from "lucide-react";
-import * as React from "react";
+import { type ComponentProps, useCallback, useMemo, useState } from "react";
 import type { DateRange } from "react-day-picker";
-import type { ControllerRenderProps } from "react-hook-form";
+
+import { DateRangePresets } from "@/components/general/date-range-presets";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -13,6 +14,7 @@ import {
 } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
 import { useTranslation } from "@/features/core/i18n/useTranslation";
+import type { DateRangePreset } from "@/lib/date-range";
 import { cn } from "@/lib/utils";
 
 export type DateSelection = Date | Date[] | DateRange | undefined;
@@ -23,9 +25,10 @@ interface SelectDateFieldProps {
     placeholder?: string;
     mode?: "single" | "multiple" | "range";
     disabled?: boolean;
-    disabledDays?: React.ComponentProps<typeof Calendar>["disabled"];
+    disabledDays?: ComponentProps<typeof Calendar>["disabled"];
     className?: string;
     title?: string;
+    rangePresets?: DateRangePreset[];
 }
 
 function formatDate(date: Date, locale: string = "en-US"): string {
@@ -41,16 +44,19 @@ function formatDateRange(range: DateRange, locale: string = "en-US"): string {
     if (range.from && range.to) {
         return `${formatDate(range.from, locale)} - ${formatDate(range.to, locale)}`;
     }
-    return formatDate(range.from ?? range.to!, locale);
+    const singleDate = range.from ?? range.to;
+    return singleDate ? formatDate(singleDate, locale) : "";
 }
 
 function formatMultipleDates(dates: Date[], locale: string = "en-US"): string {
     if (dates.length === 0) return "";
-    if (dates.length === 1) return formatDate(dates[0]!, locale);
+    const firstDate = dates[0];
+    if (!firstDate) return "";
+    if (dates.length === 1) return formatDate(firstDate, locale);
     if (dates.length <= 3) {
         return dates.map((date) => formatDate(date, locale)).join(", ");
     }
-    return `${formatDate(dates[0]!, locale)} +${dates.length - 1} more`;
+    return `${formatDate(firstDate, locale)} +${dates.length - 1} more`;
 }
 
 export function SelectDateField({
@@ -62,11 +68,12 @@ export function SelectDateField({
     disabledDays,
     className,
     title,
+    rangePresets = [],
 }: SelectDateFieldProps) {
-    const [isOpen, setIsOpen] = React.useState(false);
+    const [isOpen, setIsOpen] = useState(false);
     const { locale, t } = useTranslation();
 
-    const onSelect = React.useCallback(
+    const onSelect = useCallback(
         (date: Date | Date[] | DateRange | undefined) => {
             setValue(date);
             if (mode === "single") {
@@ -76,15 +83,7 @@ export function SelectDateField({
         [setValue, mode],
     );
 
-    const onReset = React.useCallback(
-        (event: React.MouseEvent) => {
-            event.stopPropagation();
-            setValue(undefined);
-        },
-        [setValue],
-    );
-
-    const hasValue = React.useMemo(() => {
+    const hasValue = useMemo(() => {
         if (mode === "range") {
             const range = value as DateRange;
             return range?.from || range?.to;
@@ -96,7 +95,7 @@ export function SelectDateField({
         return !!value;
     }, [mode, value]);
 
-    const displayText = React.useMemo(() => {
+    const displayText = useMemo(() => {
         if (!hasValue) {
             if (placeholder) return placeholder;
 
@@ -126,7 +125,7 @@ export function SelectDateField({
 
     const clearLabel = t("common.clearDate");
 
-    const label = React.useMemo(() => {
+    const label = useMemo(() => {
         if (!title) return null;
 
         return (
@@ -147,49 +146,63 @@ export function SelectDateField({
 
     return (
         <Popover onOpenChange={setIsOpen} open={isOpen}>
-            <PopoverTrigger asChild>
-                <Button
-                    className={cn(
-                        "w-full justify-start",
-                        title && "border-dashed",
-                        className,
-                    )}
-                    disabled={disabled}
-                    variant="outline"
-                >
-                    <div className="flex w-full items-center gap-2">
-                        {hasValue && !disabled ? (
-                            <div
-                                aria-label={clearLabel}
-                                className="rounded-sm opacity-70 transition-opacity hover:opacity-100 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                                onClick={onReset}
-                                onKeyDown={(e) => {
-                                    if (e.key === "Enter" || e.key === " ") {
-                                        e.preventDefault();
-                                        onReset(e as any);
-                                    }
-                                }}
-                                role="button"
-                                tabIndex={0}
-                            >
-                                <XCircle className="h-4 w-4" />
-                            </div>
-                        ) : (
-                            <CalendarIcon className="h-4 w-4 shrink-0" />
+            <PopoverTrigger
+                render={
+                    <Button
+                        className={cn(
+                            "w-full justify-start",
+                            title && "border-dashed",
+                            className,
                         )}
-                        <span className="flex-1 truncate">{label || displayText}</span>
-                    </div>
-                </Button>
-            </PopoverTrigger>
+                        disabled={disabled}
+                        variant="outline"
+                    >
+                        <div className="flex w-full items-center gap-2">
+                            {hasValue && !disabled ? (
+                                <div
+                                    aria-label={clearLabel}
+                                    className="rounded-sm opacity-70 transition-opacity hover:opacity-100 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setValue(undefined);
+                                    }}
+                                    onKeyDown={(e) => {
+                                        if (e.key === "Enter" || e.key === " ") {
+                                            e.preventDefault();
+                                            setValue(undefined);
+                                        }
+                                    }}
+                                    role="button"
+                                    tabIndex={0}
+                                >
+                                    <XCircle className="h-4 w-4" />
+                                </div>
+                            ) : (
+                                <CalendarIcon className="h-4 w-4 shrink-0" />
+                            )}
+                            <span className="flex-1 truncate">{label || displayText}</span>
+                        </div>
+                    </Button>
+                }
+            />
             <PopoverContent align="start" className="w-auto p-0">
                 {mode === "range" ? (
-                    <Calendar
-                        disabled={disabledDays}
-                        mode="range"
-                        numberOfMonths={2}
-                        onSelect={onSelect}
-                        selected={value as DateRange}
-                    />
+                    <>
+                        <Calendar
+                            disabled={disabledDays}
+                            mode="range"
+                            numberOfMonths={2}
+                            onSelect={onSelect}
+                            selected={value as DateRange}
+                        />
+                        <DateRangePresets
+                            onSelect={(range) => {
+                                setValue({ from: range.from, to: range.to });
+                                setIsOpen(false);
+                            }}
+                            presets={rangePresets}
+                        />
+                    </>
                 ) : mode === "multiple" ? (
                     <Calendar
                         disabled={disabledDays}
@@ -208,35 +221,4 @@ export function SelectDateField({
             </PopoverContent>
         </Popover>
     );
-}
-
-export function handleDateChange(
-    field: ControllerRenderProps<any>,
-    newDate: DateSelection,
-    currentValue?: DateSelection,
-) {
-    if (!newDate || !(newDate instanceof Date)) {
-        field.onChange(undefined);
-        return;
-    }
-
-    const selectedDate = new Date(newDate.getTime());
-
-    const sourceTime =
-        currentValue instanceof Date
-            ? new Date(currentValue)
-            : field.value
-                ? new Date(field.value)
-                : null;
-
-    if (sourceTime) {
-        selectedDate.setHours(
-            sourceTime.getHours(),
-            sourceTime.getMinutes(),
-            sourceTime.getSeconds(),
-            sourceTime.getMilliseconds(),
-        );
-    }
-
-    field.onChange(selectedDate);
 }

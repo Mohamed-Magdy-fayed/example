@@ -1,7 +1,9 @@
 "use server";
 
 import { and, eq, sql } from "drizzle-orm";
+import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import { db } from "@/drizzle";
 import { getCurrentUser } from "@/features/core/auth/nextjs/currentUser";
 import {
     type OAuthProvider,
@@ -9,15 +11,17 @@ import {
     UserCredentialsTable,
     UserOAuthAccountsTable,
 } from "@/features/core/auth/tables";
-import type { OAuthConnection, TypedResponse } from "@/features/core/auth/types";
+import type {
+    OAuthConnection,
+    TypedResponse,
+} from "@/features/core/auth/types";
 import { getT } from "@/features/core/i18n/actions";
-import { db } from "@/server/db";
-import { revalidatePath } from "next/cache";
 
 const providerSchema = z.enum(oAuthProviderValues);
 
-export async function listOAuthConnectionsAction(
-): Promise<TypedResponse<{ data: OAuthConnection[] }>> {
+export async function listOAuthConnectionsAction(): Promise<
+    TypedResponse<{ data: OAuthConnection[] }>
+> {
     const { id: userId } = await getCurrentUser({ redirectIfNotFound: true });
 
     const accounts = await db.query.UserOAuthAccountsTable.findMany({

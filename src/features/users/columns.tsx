@@ -3,15 +3,20 @@ import type { ColumnDef } from "@tanstack/react-table";
 import {
   DataTableColumnHeader,
   selectColumn,
-} from "@/components/data-table/components/data-table-column-header";
-import { formatDate } from "@/components/data-table/lib/format";
+} from "@/components/data-table/data-table-column-header";
 import type { DataTableColumnsContext } from "@/components/data-table/types";
+import type { User } from "@/drizzle/schema";
 import type { mainTranslations } from "@/features/core/i18n/global";
 import type { TFunction } from "@/features/core/i18n/lib";
 import { useTranslation } from "@/features/core/i18n/useTranslation";
+import { UsersRowActions } from "@/features/users/components/users-row-actions";
 import type { UserCounts } from "@/features/users/utils";
-import type { User } from "@/server/db/schema";
-import { formatCurrency } from "@/lib/formatters";
+import {
+  type DateRangePreset,
+  getTodayRange,
+  getYesterdayRange,
+} from "@/lib/date-range";
+import { formatCurrency, formatDate } from "@/lib/formatters";
 
 export function getUserColumns(
   context: DataTableColumnsContext<UserCounts>,
@@ -19,15 +24,27 @@ export function getUserColumns(
 ): ColumnDef<User, unknown>[] {
   const counts = (context.counts ?? {}) as Partial<UserCounts>;
   const roleOptions = counts.role;
+  const datePresets: DateRangePreset[] = [
+    {
+      id: "today",
+      label: t("common.today"),
+      getRange: getTodayRange,
+    },
+    {
+      id: "yesterday",
+      label: t("common.yesterday"),
+      getRange: getYesterdayRange,
+    },
+  ];
 
   return [
-    selectColumn,
+    selectColumn as ColumnDef<User, unknown>,
     {
       accessorKey: "name",
       header: ({ column }) => (
         <DataTableColumnHeader
           column={column}
-          title={t("employeeTranslations.columns.name.label")}
+          label={t("employeeTranslations.columns.name.label")}
         />
       ),
       cell: ({ row }) => (
@@ -45,7 +62,7 @@ export function getUserColumns(
       header: ({ column }) => (
         <DataTableColumnHeader
           column={column}
-          title={t("employeeTranslations.columns.email.label")}
+          label={t("employeeTranslations.columns.email.label")}
         />
       ),
       cell: ({ row }) => (
@@ -65,7 +82,7 @@ export function getUserColumns(
       header: ({ column }) => (
         <DataTableColumnHeader
           column={column}
-          title={t("employeeTranslations.columns.phone.label")}
+          label={t("employeeTranslations.columns.phone.label")}
         />
       ),
       cell: ({ row }) => (
@@ -85,7 +102,7 @@ export function getUserColumns(
       header: ({ column }) => (
         <DataTableColumnHeader
           column={column}
-          title={t("employeeTranslations.columns.role.label")}
+          label={t("employeeTranslations.columns.role.label")}
         />
       ),
       cell: ({ row }) =>
@@ -104,7 +121,7 @@ export function getUserColumns(
       header: ({ column }) => (
         <DataTableColumnHeader
           column={column}
-          title={t("employeeTranslations.columns.salary.label")}
+          label={t("employeeTranslations.columns.salary.label")}
         />
       ),
       cell: ({ row }) => formatCurrency(row.original.salary || 0),
@@ -112,6 +129,7 @@ export function getUserColumns(
       meta: {
         label: t("employeeTranslations.columns.salary.label"),
         variant: "range",
+        sumFormatter: (value) => formatCurrency(value),
       },
     },
     {
@@ -119,18 +137,21 @@ export function getUserColumns(
       header: ({ column }) => (
         <DataTableColumnHeader
           column={column}
-          title={t("employeeTranslations.columns.lastSignInAt.label")}
+          label={t("employeeTranslations.columns.lastSignInAt.label")}
         />
       ),
       cell: ({ row }) => (
         <span className="text-muted-foreground text-sm">
-          {row.original.lastSignInAt ? formatDate(row.original.lastSignInAt) : "-"}
+          {row.original.lastSignInAt
+            ? formatDate(row.original.lastSignInAt)
+            : "-"}
         </span>
       ),
       enableColumnFilter: true,
       meta: {
         label: t("employeeTranslations.columns.lastSignInAt.label"),
         variant: "dateRange",
+        datePresets,
       },
     },
     {
@@ -138,7 +159,7 @@ export function getUserColumns(
       header: ({ column }) => (
         <DataTableColumnHeader
           column={column}
-          title={t("employeeTranslations.columns.createdAt.label")}
+          label={t("employeeTranslations.columns.createdAt.label")}
         />
       ),
       cell: ({ row }) => (
@@ -150,7 +171,19 @@ export function getUserColumns(
       meta: {
         label: t("employeeTranslations.columns.createdAt.label"),
         variant: "dateRange",
+        datePresets,
       },
+    },
+    {
+      id: "actions",
+      header: () => t("common.actions"),
+      cell: ({ row }) => <UsersRowActions user={row.original} />,
+      size: 52,
+      minSize: 52,
+      maxSize: 52,
+      enableSorting: false,
+      enableHiding: false,
+      enableColumnFilter: false,
     },
   ];
 }

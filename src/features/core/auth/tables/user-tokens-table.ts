@@ -1,8 +1,14 @@
 import { relations } from "drizzle-orm";
-import { jsonb, pgEnum, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
-
+import {
+	jsonb,
+	pgEnum,
+	pgTable,
+	text,
+	timestamp,
+	uuid,
+} from "drizzle-orm/pg-core";
+import { createdAt, id } from "@/drizzle/schemas/helpers";
 import { UsersTable } from "./";
-import { createdAt, id } from "@/server/db/schemas/helpers";
 
 export const userTokenTypeValues = [
 	"email_verification",
@@ -22,9 +28,7 @@ export const UserTokensTable = pgTable("user_tokens", {
 	type: userTokenTypeEnum().notNull(),
 	expiresAt: timestamp({ withTimezone: true }).notNull(),
 	consumedAt: timestamp({ withTimezone: true }),
-	metadata: jsonb()
-		.$type<Record<string, unknown> | null>()
-		.default(null),
+	metadata: jsonb().$type<Record<string, unknown> | null>().default(null),
 });
 
 export const userTokensRelations = relations(UserTokensTable, ({ one }) => ({

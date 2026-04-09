@@ -5,9 +5,9 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Status, StatusIndicator, StatusLabel } from "@/components/ui/status";
 import { H3, P } from "@/components/ui/typography";
+import { beginEmailVerificationAction } from "@/features/core/auth/nextjs/actions";
 import { useAuth } from "@/features/core/auth/nextjs/components/auth-provider";
 import { useTranslation } from "@/features/core/i18n/useTranslation";
-import { api } from "@/trpc/react";
 
 export function EmailVerificationNotice({
     isVerified,
@@ -19,7 +19,6 @@ export function EmailVerificationNotice({
     const { t } = useTranslation();
     const { session } = useAuth();
     const [isPending, startTransition] = useTransition();
-    const beginVerification = api.auth.email.beginVerification.useMutation();
 
     const email = session?.user.email;
 
@@ -61,8 +60,8 @@ export function EmailVerificationNotice({
                     onClick={() => {
                         startTransition(async () => {
                             try {
-                                const res = await beginVerification.mutateAsync();
-                                if (!res.sent) {
+                                const res = await beginEmailVerificationAction();
+                                if (res.isError) {
                                     toast.error(
                                         res.message ??
                                         t("authTranslations.emailVerification.error.sendFailed"),

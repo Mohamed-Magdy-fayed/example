@@ -7,7 +7,15 @@ import {
 	uniqueIndex,
 	varchar,
 } from "drizzle-orm/pg-core";
-
+import {
+	createdAt,
+	createdBy,
+	deletedAt,
+	deletedBy,
+	id,
+	updatedAt,
+	updatedBy,
+} from "@/drizzle/schemas/helpers";
 import {
 	BiometricCredentialsTable,
 	BranchMembershipsTable,
@@ -15,13 +23,8 @@ import {
 	UserOAuthAccountsTable,
 	UserTokensTable,
 } from "./";
-import { createdAt, createdBy, deletedAt, deletedBy, id, updatedAt, updatedBy } from "@/server/db/schemas/helpers";
 
-export const userRoleValues = [
-	"admin",
-	"employee",
-	"customer",
-] as const;
+export const userRoleValues = ["admin", "employee", "customer"] as const;
 export type UserRole = (typeof userRoleValues)[number];
 export const userRoleEnum = pgEnum("user_role", userRoleValues);
 

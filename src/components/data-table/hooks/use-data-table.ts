@@ -34,6 +34,8 @@ import {
   DATA_TABLE_ARRAY_SEPARATOR,
   DATA_TABLE_DEFAULT_DEBOUNCE_MS,
   DATA_TABLE_DEFAULT_THROTTLE_MS,
+  DATA_TABLE_FILTERS_KEY,
+  DATA_TABLE_JOIN_OPERATOR_KEY,
   DATA_TABLE_PAGE_KEY,
   DATA_TABLE_PER_PAGE_KEY,
   DATA_TABLE_SORT_KEY,
@@ -259,6 +261,22 @@ export function useDataTable<TData>(props: UseDataTableProps<TData>) {
   const [columnFilters, setColumnFilters] =
     React.useState<ColumnFiltersState>(initialColumnFilters);
 
+  const resolvedMeta = React.useMemo(() => {
+    const existingMeta = tableProps.meta;
+
+    return {
+      ...existingMeta,
+      queryKeys: {
+        page: DATA_TABLE_PAGE_KEY,
+        perPage: DATA_TABLE_PER_PAGE_KEY,
+        sort: DATA_TABLE_SORT_KEY,
+        filters: DATA_TABLE_FILTERS_KEY,
+        joinOperator: DATA_TABLE_JOIN_OPERATOR_KEY,
+        ...existingMeta?.queryKeys,
+      },
+    };
+  }, [tableProps.meta]);
+
   const onColumnFiltersChange = React.useCallback(
     (updaterOrValue: Updater<ColumnFiltersState>) => {
       if (enableAdvancedFilter) return;
@@ -297,6 +315,7 @@ export function useDataTable<TData>(props: UseDataTableProps<TData>) {
     columns,
     initialState,
     pageCount,
+    meta: resolvedMeta,
     state: {
       pagination,
       sorting,

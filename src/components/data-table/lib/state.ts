@@ -10,7 +10,6 @@ import {
   getFiltersStateParser,
   getSortingStateParser,
 } from "@/components/data-table/lib/parsers";
-import { getValidFilters } from "@/components/data-table/lib/utils";
 import type {
   DataTableFilterDefinition,
   DataTableFilterMap,
@@ -76,14 +75,14 @@ export async function parseDataTableState<TFilters = DataTableFilterMap>(
     columnIds,
     filterDefinitions = [],
     transformFilters,
-    filtersKey = DATA_TABLE_FILTERS_KEY,
+    filtersKey,
   } = options;
 
   const params = toURLSearchParams(searchParams);
 
   const pagination = parsePagination(params, defaultPageSize);
   const sorting = parseSorting(params, columnIds);
-  const rawFilters = parseFilters(params, filterDefinitions);
+  const rawFilters = parseFilters(params, filterDefinitions, filtersKey);
 
   const filters = transformFilters
     ? await transformFilters(rawFilters)
@@ -130,52 +129,145 @@ function parseSorting(
 function parseFilters(
   params: URLSearchParams,
   filterDefinitions: DataTableFilterDefinition[],
+  filtersKey?: string,
 ): DataTableFilterMap {
-  if (!filterDefinitions.length) return {};
+  const parsedAdvancedFilters = parseAdvancedFilters(
+    params,
+    filtersKey ?? DATA_TABLE_FILTERS_KEY,
+  );
 
-  return filterDefinitions.reduce<DataTableFilterMap>((acc, definition) => {
-    const key = definition.key ?? definition.id;
+  if (!filterDefinitions.length) return parsedAdvancedFilters;
 
-    const paramValues = params.getAll(key);
+  const parsedBasicFilters = filterDefinitions.reduce<DataTableFilterMap>(
+    (acc, definition) => {
+      const key = definition.key ?? definition.id;
 
-    let rawValue: string | string[] | null = null;
+      const paramValues = params.getAll(key);
 
-    if (paramValues.length === 1) {
-      rawValue = paramValues[0] ?? null;
-    } else if (paramValues.length > 1) {
-      rawValue = paramValues;
+      let rawValue: string | string[] | null = null;
+
+      if (paramValues.length === 1) {
+        rawValue = paramValues[0] ?? null;
+      } else if (paramValues.length > 1) {
+        rawValue = paramValues;
+      }
+
+      const expectsArray =
+        definition.expectsArray ??
+        (definition.variant === "multiSelect" ||
+          definition.variant === "select" ||
+          definition.variant === "range" ||
+          definition.variant === "dateRange");
+
+      let normalized: string | string[] | null = rawValue;
+
+      if (typeof rawValue === "string" && expectsArray) {
+        normalized = rawValue
+          .split(definition.separator ?? DATA_TABLE_ARRAY_SEPARATOR)
+          .map((value) => value.trim())
+          .filter((value) => value.length > 0);
+      }
+
+      if (!expectsArray && Array.isArray(normalized)) {
+        normalized = normalized[0] ?? null;
+      }
+
+      const parsed = definition.parse
+        ? definition.parse(normalized)
+        : (normalized as DataTableFilterValue);
+
+      if (
+        parsed !== null &&
+        parsed !== undefined &&
+        !isEmptyFilterValue(parsed)
+      ) {
+        acc[definition.id] = parsed;
+      } else {
+        acc[definition.id] = null;
+      }
+
+      return acc;
+    },
+    {},
+  );
+
+  return {
+    ...parsedBasicFilters,
+    ...parsedAdvancedFilters,
+  };
+}
+
+function parseAdvancedFilters(
+  params: URLSearchParams,
+  filtersKey: string,
+): DataTableFilterMap {
+  const rawFilters = params.get(filtersKey);
+  if (!rawFilters) return {};
+
+  const parsed = getFiltersStateParser<unknown>().parse(rawFilters);
+  if (!parsed?.length) return {};
+
+  return parsed.reduce<DataTableFilterMap>((acc, filter) => {
+    const id = filter.id;
+
+    if (filter.operator === "isEmpty" || filter.operator === "isNotEmpty") {
+      return acc;
     }
 
-    const expectsArray =
-      definition.expectsArray ??
-      (definition.variant === "multiSelect" ||
-        definition.variant === "select" ||
-        definition.variant === "range" ||
-        definition.variant === "dateRange");
+    if (
+      filter.variant === "range" ||
+      filter.variant === "date" ||
+      filter.variant === "dateRange"
+    ) {
+      const current = Array.isArray(acc[id])
+        ? [...(acc[id] as string[])]
+        : ["", ""];
+      const value = Array.isArray(filter.value)
+        ? filter.value
+        : [filter.value, filter.value];
 
-    let normalized: string | string[] | null = rawValue;
+      if (filter.operator === "isBetween") {
+        current[0] = value[0] ?? "";
+        current[1] = value[1] ?? "";
+      } else if (
+        (filter.variant === "date" || filter.variant === "dateRange") &&
+        value[1]
+      ) {
+        current[0] = value[0] ?? "";
+        current[1] = value[1] ?? "";
+      } else if (filter.operator === "gt" || filter.operator === "gte") {
+        current[0] = value[0] ?? "";
+      } else if (filter.operator === "lt" || filter.operator === "lte") {
+        current[1] = value[0] ?? "";
+      } else {
+        current[0] = value[0] ?? "";
+      }
 
-    if (typeof rawValue === "string" && expectsArray) {
-      normalized = rawValue
-        .split(definition.separator ?? DATA_TABLE_ARRAY_SEPARATOR)
-        .map((value) => value.trim())
-        .filter((value) => value.length > 0);
+      acc[id] = current.some((item) => item) ? current : null;
+      return acc;
     }
 
-    if (!expectsArray && Array.isArray(normalized)) {
-      normalized = normalized[0] ?? null;
+    if (filter.variant === "multiSelect") {
+      const value = Array.isArray(filter.value)
+        ? filter.value.filter(Boolean)
+        : [filter.value].filter(Boolean);
+
+      acc[id] = value.length > 0 ? value : null;
+      return acc;
     }
 
-    const parsed = definition.parse
-      ? definition.parse(normalized)
-      : (normalized as DataTableFilterValue);
-
-    if (parsed !== null && parsed !== undefined && !isEmptyFilterValue(parsed)) {
-      acc[definition.id] = parsed;
-    } else {
-      acc[definition.id] = null;
+    if (filter.variant === "select") {
+      const value = Array.isArray(filter.value)
+        ? (filter.value[0] ?? "")
+        : filter.value;
+      acc[id] = value || null;
+      return acc;
     }
 
+    const value = Array.isArray(filter.value)
+      ? (filter.value[0] ?? "")
+      : filter.value;
+    acc[id] = value || null;
     return acc;
   }, {});
 }

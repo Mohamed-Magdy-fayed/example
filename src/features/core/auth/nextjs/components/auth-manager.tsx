@@ -1,36 +1,60 @@
 "use client";
 
-import { UserIcon, MailIcon, ShieldBanIcon, ListTreeIcon, LockKeyhole, MoonIcon, SunIcon, LogOut, PhoneIcon } from "lucide-react";
-import { useTheme } from "next-themes";
+import {
+    ListTreeIcon,
+    LockKeyhole,
+    LogOut,
+    MailIcon,
+    MoonIcon,
+    PhoneIcon,
+    ShieldBanIcon,
+    SunIcon,
+    UserIcon,
+} from "lucide-react";
 import { Activity, startTransition, useState } from "react";
 
 import { UserCard } from "@/app/(system-pages)/_components/sidebar/user-card";
+import { Button } from "@/components/ui/button";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuGroup,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { ResponsiveDialog } from "@/components/ui/responsive-dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Status, StatusIndicator } from "@/components/ui/status";
-import { Swap, SwapOn, SwapOff } from "@/components/ui/swap";
+import { Swap, SwapOff, SwapOn } from "@/components/ui/swap";
 import { signOutAction } from "@/features/core/auth/nextjs/actions";
 import { useAuth } from "@/features/core/auth/nextjs/components/auth-provider";
 import { ChangeEmailForm } from "@/features/core/auth/nextjs/components/change-email-form";
-import { ChangePhoneForm } from "@/features/core/auth/nextjs/components/change-phone-form";
 import { ChangePasswordForm } from "@/features/core/auth/nextjs/components/change-password-form";
+import { ChangePhoneForm } from "@/features/core/auth/nextjs/components/change-phone-form";
 import { EmailVerificationNotice } from "@/features/core/auth/nextjs/components/email-verification-notice";
 import { OAuthConnections } from "@/features/core/auth/nextjs/components/oauth-connections";
 import { PasskeyManager } from "@/features/core/auth/nextjs/components/passkey-manager";
 import { ProfileForm } from "@/features/core/auth/nextjs/components/profile-form";
+import { useTheme } from "@/features/core/color-theme/theme-provider";
 import { useTranslation } from "@/features/core/i18n/useTranslation";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
 
-export function AuthManager({ trigger }: { trigger: React.ReactNode }) {
+export function AuthManager({ trigger }: { trigger: React.ReactElement }) {
     const { t, setLocale, locale } = useTranslation();
     const { theme, setTheme } = useTheme();
     const { isAuthenticated, session } = useAuth();
     const isMobile = useIsMobile();
 
     const [openDialog, setOpenDialog] = useState<
-        "profile" | "phone" | "email" | "password" | "oauth" | "passkeys" | undefined
+        | "profile"
+        | "phone"
+        | "email"
+        | "password"
+        | "oauth"
+        | "passkeys"
+        | undefined
     >();
 
     if (!isAuthenticated) return <Skeleton className="h-12 w-full" />;
@@ -61,9 +85,7 @@ export function AuthManager({ trigger }: { trigger: React.ReactNode }) {
                         isVerified={!!session.user.emailVerifiedAt}
                         onClose={() => setOpenDialog(undefined)}
                     />
-                    <Activity
-                        mode={isEmailVerified || !hasEmail ? "visible" : "hidden"}
-                    >
+                    <Activity mode={isEmailVerified || !hasEmail ? "visible" : "hidden"}>
                         <ChangeEmailForm />
                     </Activity>
                 </div>
@@ -90,18 +112,18 @@ export function AuthManager({ trigger }: { trigger: React.ReactNode }) {
                 <PasskeyManager />
             </ResponsiveDialog>
             <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                    {trigger}
-                </DropdownMenuTrigger>
+                <DropdownMenuTrigger render={trigger} />
                 <DropdownMenuContent
                     align="end"
                     className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
                     side={isMobile ? "bottom" : "right"}
                     sideOffset={4}
                 >
-                    <DropdownMenuLabel className="p-0 font-normal">
-                        <UserCard />
-                    </DropdownMenuLabel>
+                    <DropdownMenuGroup>
+                        <DropdownMenuLabel className="p-0 font-normal">
+                            <UserCard />
+                        </DropdownMenuLabel>
+                    </DropdownMenuGroup>
                     <DropdownMenuSeparator />
                     <DropdownMenuGroup>
                         <DropdownMenuItem onSelect={() => setOpenDialog("profile")}>
@@ -142,34 +164,42 @@ export function AuthManager({ trigger }: { trigger: React.ReactNode }) {
                     </DropdownMenuGroup>
                     <DropdownMenuSeparator />
                     <DropdownMenuGroup className="grid grid-cols-2 gap-2">
-                        <Button asChild variant="outline">
-                            <Swap
-                                animation="rotate"
-                                onSwappedChange={(val) => {
-                                    startTransition(() => {
-                                        setTheme(val ? "dark" : "light");
-                                    });
-                                }}
-                                swapped={theme === "dark"}
-                            >
-                                <SwapOn>
-                                    <MoonIcon />
-                                </SwapOn>
-                                <SwapOff>
-                                    <SunIcon />
-                                </SwapOff>
-                            </Swap>
-                        </Button>
-                        <Button asChild variant="outline">
-                            <Swap
-                                animation="scale"
-                                onSwappedChange={(val) => setLocale(val ? "en" : "ar")}
-                                swapped={locale === "en"}
-                            >
-                                <SwapOn>AR</SwapOn>
-                                <SwapOff>EN</SwapOff>
-                            </Swap>
-                        </Button>
+                        <Button
+                            nativeButton={false}
+                            render={
+                                <Swap
+                                    animation="rotate"
+                                    onSwappedChange={(val) => {
+                                        startTransition(() => {
+                                            setTheme(val ? "dark" : "light");
+                                        });
+                                    }}
+                                    swapped={theme === "dark"}
+                                >
+                                    <SwapOn>
+                                        <MoonIcon />
+                                    </SwapOn>
+                                    <SwapOff>
+                                        <SunIcon />
+                                    </SwapOff>
+                                </Swap>
+                            }
+                            variant="outline"
+                        />
+                        <Button
+                            nativeButton={false}
+                            render={
+                                <Swap
+                                    animation="scale"
+                                    onSwappedChange={(val) => setLocale(val ? "en" : "ar")}
+                                    swapped={locale === "en"}
+                                >
+                                    <SwapOn>AR</SwapOn>
+                                    <SwapOff>EN</SwapOff>
+                                </Swap>
+                            }
+                            variant="outline"
+                        />
                     </DropdownMenuGroup>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
@@ -186,5 +216,5 @@ export function AuthManager({ trigger }: { trigger: React.ReactNode }) {
                 </DropdownMenuContent>
             </DropdownMenu>
         </>
-    )
+    );
 }

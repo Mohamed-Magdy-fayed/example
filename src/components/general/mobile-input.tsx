@@ -13,38 +13,37 @@ import {
     ButtonGroupSeparator,
 } from "@/components/ui/button-group";
 import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuGroup,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
     InputGroup,
     InputGroupAddon,
     InputGroupButton,
     InputGroupInput,
 } from "@/components/ui/input-group";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+} from "@/components/ui/select";
 import { useTranslation } from "@/features/core/i18n/useTranslation";
 import { cn } from "@/lib/utils";
 
 const countryOptions = [
-    { code: "EG", label: "Egypt", flagUrl: "/flags/eg.png" },
-    { code: "MA", label: "Morocco", flagUrl: "/flags/ma.png" },
-    { code: "TN", label: "Tunisia", flagUrl: "/flags/tn.png" },
-    { code: "DZ", label: "Algeria", flagUrl: "/flags/dz.png" },
-    { code: "LY", label: "Libya", flagUrl: "/flags/ly.png" },
-    { code: "JO", label: "Jordan", flagUrl: "/flags/jo.png" },
-    { code: "LB", label: "Lebanon", flagUrl: "/flags/lb.png" },
-    { code: "SY", label: "Syria", flagUrl: "/flags/sy.png" },
-    { code: "IQ", label: "Iraq", flagUrl: "/flags/iq.png" },
-    { code: "SA", label: "Saudi Arabia", flagUrl: "/flags/sa.png" },
-    { code: "AE", label: "United Arab Emirates", flagUrl: "/flags/ae.png" },
-    { code: "KW", label: "Kuwait", flagUrl: "/flags/kw.png" },
-    { code: "OM", label: "Oman", flagUrl: "/flags/om.png" },
-    { code: "QA", label: "Qatar", flagUrl: "/flags/qa.png" },
-    { code: "BH", label: "Bahrain", flagUrl: "/flags/bh.png" },
-    { code: "YE", label: "Yemen", flagUrl: "/flags/ye.png" },
+    { code: "EG", flagUrl: "/flags/eg.png" },
+    { code: "MA", flagUrl: "/flags/ma.png" },
+    { code: "TN", flagUrl: "/flags/tn.png" },
+    { code: "DZ", flagUrl: "/flags/dz.png" },
+    { code: "LY", flagUrl: "/flags/ly.png" },
+    { code: "JO", flagUrl: "/flags/jo.png" },
+    { code: "LB", flagUrl: "/flags/lb.png" },
+    { code: "SY", flagUrl: "/flags/sy.png" },
+    { code: "IQ", flagUrl: "/flags/iq.png" },
+    { code: "SA", flagUrl: "/flags/sa.png" },
+    { code: "AE", flagUrl: "/flags/ae.png" },
+    { code: "KW", flagUrl: "/flags/kw.png" },
+    { code: "OM", flagUrl: "/flags/om.png" },
+    { code: "QA", flagUrl: "/flags/qa.png" },
+    { code: "BH", flagUrl: "/flags/bh.png" },
+    { code: "YE", flagUrl: "/flags/ye.png" },
 ];
 
 const countryCodes = countryOptions.map((op) => op.code as Country);
@@ -83,35 +82,40 @@ const CountrySelect = memo(function CountrySelect({
 
     return (
         <InputGroupAddon align="inline-end">
-            <DropdownMenu>
+            <Select
+                onValueChange={(selectedValue, _eventDetails) => {
+                    if (selectedValue) {
+                        onChange(selectedValue);
+                    }
+                }}
+                value={value}
+            >
                 <ButtonGroup>
                     <div className="grid place-content-center">
                         {iconComponent?.({ country: value as Country })}
                     </div>
                     <ButtonGroupSeparator className="mx-2" />
-                    <DropdownMenuTrigger asChild>
-                        <InputGroupButton tabIndex={-1} variant="ghost">
-                            {value}
-                            <ChevronDownIcon />
-                        </InputGroupButton>
-                    </DropdownMenuTrigger>
+                    <SelectTrigger
+                        className="border-0 bg-transparent!"
+                        render={
+                            <InputGroupButton tabIndex={-1} variant="ghost">
+                                {value}
+                                <ChevronDownIcon />
+                            </InputGroupButton>
+                        }
+                    />
                 </ButtonGroup>
-                <DropdownMenuContent align="end">
-                    <DropdownMenuGroup>
-                        {countryOptions.map((option) => (
-                            <DropdownMenuItem
-                                key={option.code}
-                                onSelect={() => onChange(option.code)}
-                            >
-                                {iconComponent?.({
-                                    country: option.code as Country,
-                                })}
-                                {t("countries", { country: option.code })}
-                            </DropdownMenuItem>
-                        ))}
-                    </DropdownMenuGroup>
-                </DropdownMenuContent>
-            </DropdownMenu>
+                <SelectContent align="end" className="w-min min-w-[12rem]">
+                    {countryOptions.map((option) => (
+                        <SelectItem key={option.code} value={option.code}>
+                            {iconComponent?.({
+                                country: option.code as Country,
+                            })}
+                            {t("countries", { country: option.code })}
+                        </SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
         </InputGroupAddon>
     );
 });

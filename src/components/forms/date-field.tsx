@@ -5,6 +5,7 @@ import {
     SelectDateField,
 } from "@/components/general/select-date-field";
 import type { Calendar } from "@/components/ui/calendar";
+import type { DateRangePreset } from "@/lib/date-range";
 import { FormBase, type FormFieldProps } from "./form-base";
 import { useFieldContext } from "./hooks";
 
@@ -14,6 +15,7 @@ type FormDateFieldProps = FormFieldProps & {
     mode?: "single" | "multiple" | "range";
     disabled?: boolean;
     disabledDays?: React.ComponentProps<typeof Calendar>["disabled"];
+    rangePresets?: DateRangePreset[];
 };
 
 export function FormDateField({
@@ -22,6 +24,7 @@ export function FormDateField({
     mode = "single",
     disabled,
     disabledDays,
+    rangePresets,
     ...props
 }: FormDateFieldProps) {
     const field = useFieldContext();
@@ -33,6 +36,7 @@ export function FormDateField({
                 disabledDays={disabledDays}
                 mode={mode}
                 placeholder={placeholder}
+                rangePresets={rangePresets}
                 setValue={(val) => field.handleChange(val)}
                 title={title ?? props.label}
                 value={field.state.value as DateSelection}

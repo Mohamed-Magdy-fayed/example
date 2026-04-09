@@ -1,8 +1,9 @@
 "use server";
 
-import { and, desc, eq, inArray } from "drizzle-orm";
+import { and, desc, eq, getTableColumns, ilike, inArray, or } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import { db } from "@/drizzle";
 import { authError } from "@/features/core/auth/core";
 import { getCurrentUser } from "@/features/core/auth/nextjs/currentUser";
 import {
@@ -11,16 +12,18 @@ import {
 } from "@/features/core/auth/schemas";
 import {
     type Branch,
-    BranchMembershipsTable,
     BranchesTable,
+    BranchMembershipsTable,
 } from "@/features/core/auth/tables";
 import type { BranchState, TypedResponse } from "@/features/core/auth/types";
 import { getT } from "@/features/core/i18n/actions";
-import { db } from "@/server/db";
 
 const upsertBranchesInputSchema = z.object({
     userId: z.uuid(),
     branchIds: z.array(z.uuid()),
+});
+const searchBranchesInputSchema = z.object({
+    query: z.string().trim().min(1),
 });
 
 export async function createBranchAction(
@@ -81,7 +84,9 @@ export async function updateBranchAction(
         };
     }
 
-    const { id: actorUserId } = await getCurrentUser({ redirectIfNotFound: true });
+    const { id: actorUserId } = await getCurrentUser({
+        redirectIfNotFound: true,
+    });
     const { branchId, nameEn, nameAr } = parsed.data;
 
     const branch = await db.query.BranchesTable.findFirst({
@@ -129,7 +134,9 @@ export async function deleteBranchAction(
     }
 
     const branchId = parsed.data;
-    const { id: actorUserId } = await getCurrentUser({ redirectIfNotFound: true });
+    const { id: actorUserId } = await getCurrentUser({
+        redirectIfNotFound: true,
+    });
 
     const branch = await db.query.BranchesTable.findFirst({
         columns: { id: true, ownerId: true },
@@ -148,9 +155,7 @@ export async function deleteBranchAction(
             message: t("authTranslations.branch.actions.deleteBranch.ownerOnly"),
         };
 
-    await db
-        .delete(BranchesTable)
-        .where(eq(BranchesTable.id, branchId));
+    await db.delete(BranchesTable).where(eq(BranchesTable.id, branchId));
 
     revalidatePath("/");
 
@@ -204,7 +209,10 @@ export async function upsertUserBranchesAction(
     return { isError: false, updated: true };
 }
 
-export type FullBranch = Pick<Branch, "id" | "nameEn" | "nameAr" | "ownerId"> & { isCurrent: boolean | null };
+export type FullBranch = Pick<
+    Branch,
+    "id" | "nameEn" | "nameAr" | "ownerId"
+> & { isCurrent: boolean | null };
 export async function listBranchesForUserAction(): Promise<
     TypedResponse<{
         data: Array<FullBranch>;
@@ -264,6 +272,70 @@ export async function setActiveBranchForUserAction(
     }
 }
 
+export async function searchBranchesForUserAction(
+    rawInput: z.infer<typeof searchBranchesInputSchema>,
+): Promise<
+    TypedResponse<{
+        data: Array<{ id: string; nameEn: string; nameAr: string }>;
+    }>
+> {
+    const { t } = await getT();
+    const parsed = searchBranchesInputSchema.safeParse(rawInput);
+    if (!parsed.success) {
+        return {
+            isError: true,
+            message: t("authTranslations.error.badRequest"),
+        };
+    }
+
+    await getCurrentUser({ redirectIfNotFound: true });
+
+    const pattern = `%${parsed.data.query}%`;
+    const results = await db
+        .select({
+            id: BranchesTable.id,
+            nameEn: BranchesTable.nameEn,
+            nameAr: BranchesTable.nameAr,
+        })
+        .from(BranchesTable)
+        .where(
+            or(
+                ilike(BranchesTable.nameEn, pattern),
+                ilike(BranchesTable.nameAr, pattern),
+            ),
+        )
+        .limit(20);
+
+    return {
+        isError: false,
+        data: results,
+    };
+}
+
+export async function getUserBranchesAction(): Promise<
+    TypedResponse<{
+        data: Array<
+            Pick<Branch, "id" | "nameEn" | "nameAr" | "ownerId" | "createdAt" | "updatedAt">
+        >;
+    }>
+> {
+    const { id: userId } = await getCurrentUser({ redirectIfNotFound: true });
+
+    const rows = await db
+        .select(getTableColumns(BranchesTable))
+        .from(BranchMembershipsTable)
+        .innerJoin(
+            BranchesTable,
+            eq(BranchMembershipsTable.branchId, BranchesTable.id),
+        )
+        .where(eq(BranchMembershipsTable.userId, userId));
+
+    return {
+        isError: false,
+        data: rows,
+    };
+}
+
 export async function getBranches(): Promise<BranchState> {
     const { id: userId } = await getCurrentUser({ redirectIfNotFound: true });
 
@@ -276,10 +348,13 @@ export async function getBranches(): Promise<BranchState> {
             isCurrent: BranchMembershipsTable.isCurrent,
         })
         .from(BranchMembershipsTable)
-        .innerJoin(BranchesTable, eq(BranchMembershipsTable.branchId, BranchesTable.id))
+        .innerJoin(
+            BranchesTable,
+            eq(BranchMembershipsTable.branchId, BranchesTable.id),
+        )
         .where(eq(BranchMembershipsTable.userId, userId));
 
-    const activeBranch = branches.find(branch => branch.isCurrent);
+    const activeBranch = branches.find((branch) => branch.isCurrent);
     const hasActiveOrg = activeBranch !== undefined;
 
     if (!hasActiveOrg) {

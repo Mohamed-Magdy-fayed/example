@@ -1,0 +1,60 @@
+- generic [ref=e1]:
+  - generic [ref=e5]:
+    - generic [ref=e6]:
+      - generic [ref=e7]:
+        - link "Back to home" [ref=e8] [cursor=pointer]:
+          - /url: /
+          - img
+          - text: Back to home
+        - generic [ref=e9]:
+          - button "Toggle theme" [ref=e10] [cursor=pointer]:
+            - generic [ref=e11]:
+              - img
+            - generic [ref=e12]:
+              - img
+          - button "AR EN" [pressed] [ref=e13] [cursor=pointer]:
+            - generic [ref=e14]: AR
+            - generic: EN
+      - generic [ref=e15]:
+        - generic [ref=e16]:
+          - heading "Sign In" [level=1] [ref=e17]
+          - paragraph [ref=e18]: Enter your mobile to sign in
+        - generic [ref=e19]:
+          - button "Google google" [ref=e20]:
+            - img "Google" [ref=e21]
+            - generic [ref=e22]: google
+          - button "github github" [ref=e23]:
+            - img "github" [ref=e24]
+            - generic [ref=e25]: github
+        - generic [ref=e26]:
+          - separator [ref=e27]
+          - generic [ref=e28]: Or continue with
+        - group [ref=e29]:
+          - group [ref=e30]:
+            - generic [ref=e31]: Phone number
+            - group [ref=e32]:
+              - group [ref=e33]:
+                - group [ref=e34]:
+                  - separator [ref=e37]
+                  - button "EG" [ref=e38]:
+                    - text: EG
+                    - img
+              - textbox "Phone number" [active] [ref=e39]:
+                - /placeholder: 011 12345678
+          - button "Continue" [ref=e40]
+          - button "Sign in with passkey" [ref=e41]:
+            - img
+            - text: Sign in with passkey
+        - paragraph [ref=e42]:
+          - text: Don't have an account?
+          - link "Sign Up" [ref=e43] [cursor=pointer]:
+            - /url: /sign-up
+    - generic [ref=e45]:
+      - generic [ref=e46]:
+        - img [ref=e47]
+        - img [ref=e50]
+        - img [ref=e59]
+      - paragraph [ref=e62]: Gateling Example
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=e68] [cursor=pointer]:
+    - img [ref=e69]

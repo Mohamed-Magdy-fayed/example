@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { type ComponentProps, useMemo } from "react";
 
 import { useMainNavLinks } from "@/app/(system-pages)/_components/sidebar/sidebar-admin-data";
+import { WrapWithTooltip } from "@/components/general/wrap-with-tooltip";
 import {
     Collapsible,
     CollapsibleContent,
@@ -28,7 +29,6 @@ import {
     SidebarMenuSubButton,
     SidebarMenuSubItem,
 } from "@/components/ui/sidebar";
-import WrapWithTooltip from "@/components/wrap-with-tooltip";
 import { hasPermission } from "@/features/core/auth/core";
 import { useAuth } from "@/features/core/auth/nextjs/components/auth-provider";
 import { cn } from "@/lib/utils";
@@ -94,7 +94,7 @@ export default function SidebarAdminMenu({
                                             {navLink.icon ? (
                                                 <navLink.icon className="shrink-0" size={16} />
                                             ) : null}
-                                            <WrapWithTooltip delay={2000} text={navLink.label}>
+                                            <WrapWithTooltip text={navLink.label}>
                                                 <span className="truncate group-data-[collapsible=icon]:sr-only">
                                                     {navLink.label}
                                                 </span>
@@ -110,7 +110,7 @@ export default function SidebarAdminMenu({
                                             {navLink.icon ? (
                                                 <navLink.icon className="shrink-0" size={16} />
                                             ) : null}
-                                            <WrapWithTooltip delay={2000} text={navLink.label}>
+                                            <WrapWithTooltip text={navLink.label}>
                                                 <span className="truncate group-data-[collapsible=icon]:sr-only">
                                                     {navLink.label}
                                                 </span>
@@ -155,29 +155,29 @@ export default function SidebarAdminMenu({
                                                     ? "true"
                                                     : "false"
                                             }
-                                            asChild
                                             className="aria-activedescendant:bg-accent/60"
-                                        >
-                                            {subItem.url ? (
-                                                <Link href={subItem.url}>
-                                                    {subItem.icon ? <subItem.icon /> : null}
-                                                    <WrapWithTooltip delay={2000} text={subItem.label}>
-                                                        <span className="truncate text-xs">
-                                                            {subItem.label}
-                                                        </span>
-                                                    </WrapWithTooltip>
-                                                </Link>
-                                            ) : (
-                                                <span>
-                                                    {subItem.icon ? <subItem.icon /> : null}
-                                                    <WrapWithTooltip delay={2000} text={subItem.label}>
-                                                        <span className="truncate text-xs">
-                                                            {subItem.label}
-                                                        </span>
-                                                    </WrapWithTooltip>
-                                                </span>
-                                            )}
-                                        </SidebarMenuSubButton>
+                                            render={
+                                                subItem.url ? (
+                                                    <Link href={subItem.url}>
+                                                        {subItem.icon ? <subItem.icon /> : null}
+                                                        <WrapWithTooltip text={subItem.label}>
+                                                            <span className="truncate text-xs">
+                                                                {subItem.label}
+                                                            </span>
+                                                        </WrapWithTooltip>
+                                                    </Link>
+                                                ) : (
+                                                    <span>
+                                                        {subItem.icon ? <subItem.icon /> : null}
+                                                        <WrapWithTooltip text={subItem.label}>
+                                                            <span className="truncate text-xs">
+                                                                {subItem.label}
+                                                            </span>
+                                                        </WrapWithTooltip>
+                                                    </span>
+                                                )
+                                            }
+                                        />
                                     </SidebarMenuSubItem>
                                 ))}
                             </SidebarMenuSub>
@@ -189,27 +189,27 @@ export default function SidebarAdminMenu({
                             aria-activedescendant={
                                 navLink.url && pathname.includes(navLink.url) ? "true" : "false"
                             }
-                            asChild
                             className="aria-activedescendant:bg-accent/60"
+                            render={
+                                navLink.url ? (
+                                    <Link href={navLink.url}>
+                                        {navLink.icon ? <navLink.icon /> : null}
+                                        <WrapWithTooltip text={navLink.label}>
+                                            <span className="truncate">{navLink.label}</span>
+                                        </WrapWithTooltip>
+                                    </Link>
+                                ) : (
+                                    <span className="flex items-center">
+                                        {navLink.icon ? <navLink.icon /> : null}
+                                        <WrapWithTooltip text={navLink.label}>
+                                            <span className="truncate">{navLink.label}</span>
+                                        </WrapWithTooltip>
+                                    </span>
+                                )
+                            }
                             size="sm"
                             tooltip={navLink.label}
-                        >
-                            {navLink.url ? (
-                                <Link href={navLink.url}>
-                                    {navLink.icon ? <navLink.icon /> : null}
-                                    <WrapWithTooltip delay={2000} text={navLink.label}>
-                                        <span className="truncate">{navLink.label}</span>
-                                    </WrapWithTooltip>
-                                </Link>
-                            ) : (
-                                <span className="flex items-center">
-                                    {navLink.icon ? <navLink.icon /> : null}
-                                    <WrapWithTooltip delay={2000} text={navLink.label}>
-                                        <span className="truncate">{navLink.label}</span>
-                                    </WrapWithTooltip>
-                                </span>
-                            )}
-                        </SidebarMenuButton>
+                        />
                     </SidebarMenuItem>
                 ),
             );
@@ -222,36 +222,40 @@ export default function SidebarAdminMenu({
         if (navLink.children?.length) {
             return (
                 <DropdownMenu key={`${navLink.label}DropdownMenu`}>
-                    <DropdownMenuTrigger asChild>
-                        <SidebarMenuItem>
-                            <SidebarMenuButton size="sm" tooltip={navLink.label}>
-                                {navLink.icon ? <navLink.icon size={20} /> : null}
-                                <WrapWithTooltip delay={2000} text={navLink.label}>
-                                    <span>{navLink.label}</span>
-                                </WrapWithTooltip>
-                                <SidebarMenuAction
-                                    asChild
-                                    className="ms-auto transition-transform duration-200"
-                                >
-                                    <ChevronDownIcon
-                                        className="transition-transform duration-200 group-data-[state=open]:ltr:rotate-90 group-data-[state=open]:rtl:-rotate-90"
-                                        size={16}
+                    <DropdownMenuTrigger
+                        render={
+                            <SidebarMenuItem>
+                                <SidebarMenuButton size="sm" tooltip={navLink.label}>
+                                    {navLink.icon ? <navLink.icon size={20} /> : null}
+                                    <WrapWithTooltip text={navLink.label}>
+                                        <span>{navLink.label}</span>
+                                    </WrapWithTooltip>
+                                    <SidebarMenuAction
+                                        className="ms-auto transition-transform duration-200"
+                                        render={
+                                            <ChevronDownIcon
+                                                className="transition-transform duration-200 group-data-[state=open]:ltr:rotate-90 group-data-[state=open]:rtl:-rotate-90"
+                                                size={16}
+                                            />
+                                        }
                                     />
-                                </SidebarMenuAction>
-                            </SidebarMenuButton>
-                        </SidebarMenuItem>
-                    </DropdownMenuTrigger>
+                                </SidebarMenuButton>
+                            </SidebarMenuItem>
+                        }
+                    />
                     <DropdownMenuContent side="right">
                         <DropdownMenuGroup>
                             {navLink.url && (
-                                <DropdownMenuItem asChild>
-                                    <Link className="font-medium" href={navLink.url}>
-                                        {navLink.icon ? <navLink.icon size={20} /> : null}
-                                        <WrapWithTooltip delay={2000} text={navLink.label}>
-                                            <span>{navLink.label}</span>
-                                        </WrapWithTooltip>
-                                    </Link>
-                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                    render={
+                                        <Link className="font-medium" href={navLink.url}>
+                                            {navLink.icon ? <navLink.icon size={20} /> : null}
+                                            <WrapWithTooltip text={navLink.label}>
+                                                <span>{navLink.label}</span>
+                                            </WrapWithTooltip>
+                                        </Link>
+                                    }
+                                />
                             )}
                             {navLink.children.map((subItem) => (
                                 <DropdownMenuItem
@@ -260,25 +264,25 @@ export default function SidebarAdminMenu({
                                             ? "true"
                                             : "false"
                                     }
-                                    asChild
                                     className="aria-activedescendant:bg-accent/60"
                                     key={subItem.url || subItem.label}
-                                >
-                                    {subItem.url ? (
-                                        <Link href={subItem.url}>
-                                            {subItem.icon ? <subItem.icon size={20} /> : null}
-                                            <WrapWithTooltip delay={2000} text={subItem.label}>
-                                                <span>{subItem.label}</span>
-                                            </WrapWithTooltip>
-                                        </Link>
-                                    ) : (
-                                        <span>
-                                            <WrapWithTooltip delay={2000} text={subItem.label}>
-                                                <span>{subItem.label}</span>
-                                            </WrapWithTooltip>
-                                        </span>
-                                    )}
-                                </DropdownMenuItem>
+                                    render={
+                                        subItem.url ? (
+                                            <Link href={subItem.url}>
+                                                {subItem.icon ? <subItem.icon size={20} /> : null}
+                                                <WrapWithTooltip text={subItem.label}>
+                                                    <span>{subItem.label}</span>
+                                                </WrapWithTooltip>
+                                            </Link>
+                                        ) : (
+                                            <span>
+                                                <WrapWithTooltip text={subItem.label}>
+                                                    <span>{subItem.label}</span>
+                                                </WrapWithTooltip>
+                                            </span>
+                                        )
+                                    }
+                                />
                             ))}
                         </DropdownMenuGroup>
                     </DropdownMenuContent>
@@ -291,27 +295,27 @@ export default function SidebarAdminMenu({
                         aria-activedescendant={
                             navLink.url && pathname.includes(navLink.url) ? "true" : "false"
                         }
-                        asChild
                         className="aria-activedescendant:bg-accent/60"
+                        render={
+                            navLink.url ? (
+                                <Link href={navLink.url}>
+                                    {navLink.icon ? <navLink.icon size={20} /> : null}
+                                    <WrapWithTooltip text={navLink.label}>
+                                        <span>{navLink.label}</span>
+                                    </WrapWithTooltip>
+                                </Link>
+                            ) : (
+                                <span className="flex items-center">
+                                    {navLink.icon ? <navLink.icon size={20} /> : null}
+                                    <WrapWithTooltip text={navLink.label}>
+                                        <span>{navLink.label}</span>
+                                    </WrapWithTooltip>
+                                </span>
+                            )
+                        }
                         size="sm"
                         tooltip={navLink.label}
-                    >
-                        {navLink.url ? (
-                            <Link href={navLink.url}>
-                                {navLink.icon ? <navLink.icon size={20} /> : null}
-                                <WrapWithTooltip delay={2000} text={navLink.label}>
-                                    <span>{navLink.label}</span>
-                                </WrapWithTooltip>
-                            </Link>
-                        ) : (
-                            <span className="flex items-center">
-                                {navLink.icon ? <navLink.icon size={20} /> : null}
-                                <WrapWithTooltip delay={2000} text={navLink.label}>
-                                    <span>{navLink.label}</span>
-                                </WrapWithTooltip>
-                            </span>
-                        )}
-                    </SidebarMenuButton>
+                    />
                 </SidebarMenuItem>
             );
         }

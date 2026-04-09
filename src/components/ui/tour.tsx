@@ -12,17 +12,17 @@ import {
   shift,
   useFloating,
 } from "@floating-ui/react-dom";
-import { useDirection } from "@radix-ui/react-direction";
 import { Slot } from "@radix-ui/react-slot";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import * as React from "react";
 import * as ReactDOM from "react-dom";
 import { Button } from "@/components/ui/button";
-import { useComposedRefs } from "@/lib/compose-refs";
-import { cn } from "@/lib/utils";
+import { useDirection } from "@/components/ui/direction";
 import { useAsRef } from "@/hooks/use-as-ref";
 import { useIsomorphicLayoutEffect } from "@/hooks/use-isomorphic-layout-effect";
 import { useLazyRef } from "@/hooks/use-lazy-ref";
+import { useComposedRefs } from "@/lib/compose-refs";
+import { cn } from "@/lib/utils";
 
 const ROOT_NAME = "Tour";
 const PORTAL_NAME = "TourPortal";
@@ -579,7 +579,8 @@ function Tour(props: TourProps) {
     ...rootProps
   } = props;
 
-  const dir = useDirection(dirProp);
+  const inheritedDir = useDirection();
+  const dir = dirProp ?? inheritedDir;
 
   const [portal, setPortal] = React.useState<HTMLElement | null>(null);
   const prevOpenRef = React.useRef<boolean | undefined>(undefined);
@@ -949,11 +950,11 @@ function TourStep(props: TourStepProps) {
       typeof stepData.collisionPadding === "number"
         ? stepData.collisionPadding
         : {
-            top: stepData.collisionPadding?.top ?? 0,
-            right: stepData.collisionPadding?.right ?? 0,
-            bottom: stepData.collisionPadding?.bottom ?? 0,
-            left: stepData.collisionPadding?.left ?? 0,
-          };
+          top: stepData.collisionPadding?.top ?? 0,
+          right: stepData.collisionPadding?.right ?? 0,
+          bottom: stepData.collisionPadding?.bottom ?? 0,
+          left: stepData.collisionPadding?.left ?? 0,
+        };
 
     const boundary = Array.isArray(stepData.collisionBoundary)
       ? stepData.collisionBoundary
@@ -974,19 +975,19 @@ function TourStep(props: TourStepProps) {
         alignmentAxis: crossAxisOffset,
       }),
       stepData.avoidCollisions &&
-        shift({
-          mainAxis: true,
-          crossAxis: false,
-          limiter: stepData.sticky === "partial" ? limitShift() : undefined,
-          ...detectOverflowOptions,
-        }),
+      shift({
+        mainAxis: true,
+        crossAxis: false,
+        limiter: stepData.sticky === "partial" ? limitShift() : undefined,
+        ...detectOverflowOptions,
+      }),
       stepData.avoidCollisions && flip({ ...detectOverflowOptions }),
       arrow && onArrow({ element: arrow, padding: stepData.arrowPadding }),
       stepData.hideWhenDetached &&
-        hide({
-          strategy: "referenceHidden",
-          ...detectOverflowOptions,
-        }),
+      hide({
+        strategy: "referenceHidden",
+        ...detectOverflowOptions,
+      }),
     ].filter(Boolean) as Middleware[];
   }, [stepData, resolvedSideOffset, resolvedAlignOffset, arrow]);
 
@@ -1228,20 +1229,20 @@ function TourStep(props: TourStepProps) {
   return (
     <StepContext.Provider value={stepContextValue}>
       <StepPrimitive
-        ref={composedRef}
-        data-slot="tour-step"
-        data-side={placedSide}
         data-align={placedAlign}
+        data-side={placedSide}
+        data-slot="tour-step"
         dir={context.dir}
+        ref={composedRef}
         tabIndex={-1}
         {...stepProps}
-        onPointerDownCapture={onPointerDownCapture}
-        onFocusCapture={onFocusCapture}
-        onBlurCapture={onBlurCapture}
         className={cn(
           "fixed z-50 flex w-80 flex-col gap-4 rounded-lg border bg-popover p-4 text-popover-foreground shadow-md outline-none",
           className,
         )}
+        onBlurCapture={onBlurCapture}
+        onFocusCapture={onFocusCapture}
+        onPointerDownCapture={onPointerDownCapture}
         style={{
           ...style,
           ...floatingStyles,
@@ -1383,8 +1384,8 @@ function TourArrow(props: TourArrowProps) {
 
   return (
     <span
-      ref={stepContext.onArrowChange}
       data-slot="tour-arrow"
+      ref={stepContext.onArrowChange}
       style={{
         position: "absolute",
         left:
@@ -1407,10 +1408,10 @@ function TourArrow(props: TourArrowProps) {
       }}
     >
       <svg
-        viewBox="0 0 30 10"
-        preserveAspectRatio="none"
-        width={width}
         height={height}
+        preserveAspectRatio="none"
+        viewBox="0 0 30 10"
+        width={width}
         {...arrowProps}
         className={cn("block fill-popover stroke-border", className)}
       >
@@ -1492,7 +1493,7 @@ function TourClose(props: TourCloseProps) {
   const store = useStoreContext(CLOSE_NAME);
 
   const onClick = React.useCallback(
-    (event: React.MouseEvent<CloseElement>) => {
+    (event: Parameters<NonNullable<typeof onClickProp>>[0]) => {
       onClickProp?.(event);
       if (event.defaultPrevented) return;
 
@@ -1505,13 +1506,13 @@ function TourClose(props: TourCloseProps) {
 
   return (
     <ClosePrimitive
-      type="button"
       aria-label="Close tour"
       className={cn(
-        "absolute top-4 end-4 rounded-xs opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none [&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0",
+        "absolute end-4 top-4 rounded-xs opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none [&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0",
         className,
       )}
       onClick={onClick}
+      type="button"
       {...closeButtonProps}
     >
       <X className="size-4" />
@@ -1526,7 +1527,7 @@ function TourPrev(props: React.ComponentProps<typeof Button>) {
   const value = useStore((state) => state.value);
 
   const onClick = React.useCallback(
-    (event: React.MouseEvent<PrevElement>) => {
+    (event: Parameters<NonNullable<typeof onClickProp>>[0]) => {
       onClickProp?.(event);
       if (event.defaultPrevented) return;
 
@@ -1539,13 +1540,13 @@ function TourPrev(props: React.ComponentProps<typeof Button>) {
 
   return (
     <Button
-      type="button"
       aria-label="Previous step"
       data-slot="tour-prev"
+      type="button"
       variant="outline"
       {...prevButtonProps}
-      onClick={onClick}
       disabled={value === 0}
+      onClick={onClick}
     >
       {children ?? (
         <>
@@ -1566,7 +1567,7 @@ function TourNext(props: React.ComponentProps<typeof Button>) {
   const isLastStep = value === steps.length - 1;
 
   const onClick = React.useCallback(
-    (event: React.MouseEvent<NextElement>) => {
+    (event: Parameters<NonNullable<typeof onClickProp>>[0]) => {
       onClickProp?.(event);
       if (event.defaultPrevented) return;
 
@@ -1577,9 +1578,9 @@ function TourNext(props: React.ComponentProps<typeof Button>) {
 
   return (
     <Button
-      type="button"
       aria-label="Next step"
       data-slot="tour-next"
+      type="button"
       {...nextButtonProps}
       onClick={onClick}
     >
@@ -1599,7 +1600,7 @@ function TourSkip(props: React.ComponentProps<typeof Button>) {
   const store = useStoreContext(SKIP_NAME);
 
   const onClick = React.useCallback(
-    (event: React.MouseEvent<SkipElement>) => {
+    (event: Parameters<NonNullable<typeof onClickProp>>[0]) => {
       onClickProp?.(event);
       if (event.defaultPrevented) return;
 
@@ -1610,9 +1611,9 @@ function TourSkip(props: React.ComponentProps<typeof Button>) {
 
   return (
     <Button
-      type="button"
       aria-label="Skip tour"
       data-slot="tour-skip"
+      type="button"
       variant="outline"
       {...skipButtonProps}
       onClick={onClick}
@@ -1670,11 +1671,11 @@ function TourFooter(props: DivProps) {
       data-slot="tour-footer"
       dir={context.dir}
       {...footerProps}
-      ref={composedRef}
       className={cn(
         "flex flex-col-reverse gap-2 sm:flex-row sm:justify-end",
         className,
       )}
+      ref={composedRef}
     />
   );
 }

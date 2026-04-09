@@ -1,18 +1,21 @@
 "use client";
 
+import { CheckIcon, XIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import * as React from "react";
 import { toast } from "sonner";
 import { z } from "zod";
-
 import { useAppForm } from "@/components/forms/hooks";
 import { Button } from "@/components/ui/button";
 import { FieldGroup, FieldSet } from "@/components/ui/field";
 import type { LookupItem } from "@/components/ui/search-lookup";
+import type { User } from "@/drizzle/schema";
 import { useTranslation } from "@/features/core/i18n/useTranslation";
-import { type User, type UserRole, userRoleValues } from "@/server/db/schema";
-import { api } from "@/trpc/react";
-import { CheckIcon, XIcon } from "lucide-react";
+import {
+    createEmployeeAction,
+    searchBranchesAction,
+    updateEmployeeAction,
+} from "@/features/users/actions";
 
 interface UsersFormProps {
     setIsOpen?: (open: boolean) => void;
@@ -23,24 +26,47 @@ export function UsersForm({ setIsOpen, initialValues }: UsersFormProps) {
     const router = useRouter();
     const [isPending, startTransition] = React.useTransition();
     const { t } = useTranslation();
+    const isStandaloneCreate = !initialValues?.id && !setIsOpen;
     const [branchSearch, setBranchSearch] = React.useState("");
+    const [branchResults, setBranchResults] = React.useState<
+        Array<{ id: string; nameEn: string; nameAr: string }>
+    >([]);
+    const [branchLoading, setBranchLoading] = React.useState(false);
 
-    const createUserMutation = api.users.create.useMutation();
-    const updateUserMutation = api.users.update.useMutation();
+    React.useEffect(() => {
+        const query = branchSearch.trim();
 
-    const { data: branchResults, isLoading: branchLoading } =
-        api.root.branch.searchBranches.useQuery(
-            { query: branchSearch },
-            { enabled: branchSearch.length >= 1 },
-        );
+        let cancelled = false;
+        const timer = setTimeout(async () => {
+            setBranchLoading(true);
+            const result = await searchBranchesAction({ query });
+            if (cancelled) return;
+
+            if (result.isError) {
+                setBranchResults([]);
+                setBranchLoading(false);
+                return;
+            }
+
+            setBranchResults(result.data);
+            setBranchLoading(false);
+        }, 250);
+
+        return () => {
+            cancelled = true;
+            clearTimeout(timer);
+        };
+    }, [branchSearch]);
 
     const branchItems: LookupItem[] = React.useMemo(
         () =>
-            branchResults?.map((branch) => ({
-                value: branch.id,
-                label: branch.nameEn,
-                description: branch.nameAr,
-            })) ?? [],
+            branchResults?.map(
+                (branch: { id: string; nameEn: string; nameAr: string }) => ({
+                    value: branch.id,
+                    label: branch.nameEn,
+                    description: branch.nameAr,
+                }),
+            ) ?? [],
         [branchResults],
     );
 
@@ -55,7 +81,6 @@ export function UsersForm({ setIsOpen, initialValues }: UsersFormProps) {
                     .min(1, t("employeeTranslations.form.validation.emailRequired")),
                 phone: z.string(),
                 branchIds: z.array(z.uuid()),
-                role: z.enum(userRoleValues),
                 lastSignInAt: z.date(),
                 salary: z.number(),
             }),
@@ -69,7 +94,6 @@ export function UsersForm({ setIsOpen, initialValues }: UsersFormProps) {
             email: initialValues?.email ?? "",
             phone: initialValues?.phone ?? "",
             branchIds: initialValues?.branchIds ?? [],
-            role: initialValues?.role ?? "employee",
             lastSignInAt: initialValues?.lastSignInAt ?? new Date(),
             salary: initialValues?.salary ?? 0,
         } satisfies UserFormValues as UserFormValues,
@@ -80,12 +104,21 @@ export function UsersForm({ setIsOpen, initialValues }: UsersFormProps) {
             startTransition(async () => {
                 try {
                     if (initialValues?.id) {
-                        await updateUserMutation.mutateAsync({
+                        const result = await updateEmployeeAction({
                             id: initialValues.id,
                             data: value,
                         });
+
+                        if (result.isError) {
+                            toast.error(result.message);
+                            return;
+                        }
                     } else {
-                        await createUserMutation.mutateAsync(value);
+                        const result = await createEmployeeAction(value);
+                        if (result.isError) {
+                            toast.error(result.message);
+                            return;
+                        }
                     }
 
                     toast.success(
@@ -94,8 +127,15 @@ export function UsersForm({ setIsOpen, initialValues }: UsersFormProps) {
                             length: 1,
                         }),
                     );
-                    form.reset();
-                    setIsOpen?.(false);
+
+                    if (isStandaloneCreate) {
+                        form.reset();
+                        setBranchSearch("");
+                        setBranchResults([]);
+                    } else {
+                        setIsOpen?.(false);
+                    }
+
                     router.refresh();
                 } catch (error) {
                     toast.error(
@@ -125,7 +165,9 @@ export function UsersForm({ setIsOpen, initialValues }: UsersFormProps) {
                             {(field) => (
                                 <field.StringField
                                     label={t("employeeTranslations.columns.name.label")}
-                                    placeholder={t("employeeTranslations.columns.name.placeholder")}
+                                    placeholder={t(
+                                        "employeeTranslations.columns.name.placeholder",
+                                    )}
                                 />
                             )}
                         </form.AppField>
@@ -134,7 +176,9 @@ export function UsersForm({ setIsOpen, initialValues }: UsersFormProps) {
                             {(field) => (
                                 <field.MobileField
                                     label={t("employeeTranslations.columns.phone.label")}
-                                    placeholder={t("employeeTranslations.columns.phone.placeholder")}
+                                    placeholder={t(
+                                        "employeeTranslations.columns.phone.placeholder",
+                                    )}
                                 />
                             )}
                         </form.AppField>
@@ -144,22 +188,9 @@ export function UsersForm({ setIsOpen, initialValues }: UsersFormProps) {
                         {(field) => (
                             <field.EmailField
                                 label={t("employeeTranslations.columns.email.label")}
-                                placeholder={t("employeeTranslations.columns.email.placeholder")}
-                            />
-                        )}
-                    </form.AppField>
-
-                    <form.AppField name="role">
-                        {(field) => (
-                            <field.SelectField
-                                label={t("employeeTranslations.columns.role.label")}
-                                options={userRoleValues.map((role) => ({
-                                    value: role,
-                                    label: t("employeeTranslations.columns.role.filterValues", {
-                                        role,
-                                    }),
-                                }))}
-                                placeholder={t("employeeTranslations.columns.role.placeholder")}
+                                placeholder={t(
+                                    "employeeTranslations.columns.email.placeholder",
+                                )}
                             />
                         )}
                     </form.AppField>
@@ -170,7 +201,7 @@ export function UsersForm({ setIsOpen, initialValues }: UsersFormProps) {
                                 items={branchItems}
                                 label={t("employeeTranslations.columns.branch.label")}
                                 loading={branchLoading}
-                                minChars={1}
+                                minChars={0}
                                 multiple
                                 onSearch={setBranchSearch}
                                 placeholder={t(
@@ -193,7 +224,9 @@ export function UsersForm({ setIsOpen, initialValues }: UsersFormProps) {
                         {(field) => (
                             <field.NumberField
                                 label={t("employeeTranslations.columns.salary.label")}
-                                placeholder={t("employeeTranslations.columns.salary.placeholder")}
+                                placeholder={t(
+                                    "employeeTranslations.columns.salary.placeholder",
+                                )}
                             />
                         )}
                     </form.AppField>
@@ -201,14 +234,23 @@ export function UsersForm({ setIsOpen, initialValues }: UsersFormProps) {
                     <div className="flex justify-end gap-2">
                         <Button
                             disabled={isPending}
-                            onClick={() => setIsOpen?.(false)}
+                            onClick={() => {
+                                if (setIsOpen) {
+                                    setIsOpen(false);
+                                    return;
+                                }
+
+                                form.reset();
+                                setBranchSearch("");
+                                setBranchResults([]);
+                            }}
                             type="button"
                             variant="destructive"
                         >
                             <XIcon />
                             {t("common.cancel")}
                         </Button>
-                        <Button disabled={isPending} type="submit" className="flex-1">
+                        <Button className="flex-1" disabled={isPending} type="submit">
                             <CheckIcon />
                             {isPending
                                 ? initialValues

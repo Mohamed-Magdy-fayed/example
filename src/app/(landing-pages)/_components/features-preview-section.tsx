@@ -1,9 +1,14 @@
 "use client";
 
-import { ArrowRight, ExternalLink, PlayCircleIcon, Sparkles } from "lucide-react";
+import {
+  ArrowRight,
+  ExternalLink,
+  PlayCircleIcon,
+  Sparkles,
+} from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { LinkButton } from "@/components/general/link-button";
 import { H2, H3, P } from "@/components/ui/typography";
 import { useTranslation } from "@/features/core/i18n/useTranslation";
 
@@ -57,9 +62,7 @@ export function FeaturePreviewSection() {
     },
     tooling: {
       label: t("featuresPreview.featuredFeatures.tooling.name"),
-      description: t(
-        "featuresPreview.featuredFeatures.tooling.description",
-      ),
+      description: t("featuresPreview.featuredFeatures.tooling.description"),
       image: "/skills/tooling-automation.svg",
     },
   } as const;
@@ -76,11 +79,11 @@ export function FeaturePreviewSection() {
   const categories = Object.entries(SKILL_SECTIONS);
 
   return (
-    <section className="py-20 bg-background">
+    <section className="bg-background py-20">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section header */}
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <H2 className="text-primary mb-4">
+        <div className="mx-auto mb-16 max-w-3xl text-center">
+          <H2 className="mb-4 text-primary">
             {t("featuresPreview.header.title")}
           </H2>
           <P className="text-lg text-muted-foreground">
@@ -89,23 +92,23 @@ export function FeaturePreviewSection() {
         </div>
 
         {/* Categories grid */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-12">
+        <div className="mb-12 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
           {categories.map(([key, category]) => (
             <Link
-              key={key}
+              className="group rounded-lg bg-muted/50 p-4 text-center transition-all duration-200 hover:scale-105 hover:bg-muted"
               href="/skills"
-              className="group bg-muted/50 hover:bg-muted rounded-lg p-4 text-center transition-all duration-200 hover:scale-105"
+              key={key}
             >
               <div className="mb-2">
                 <Image
-                  src={category.image}
                   alt={`${category.label} icon`}
-                  width={64}
+                  className="mx-auto h-12 w-12 object-contain"
                   height={64}
-                  className="w-12 h-12 object-contain mx-auto"
+                  src={category.image}
+                  width={64}
                 />
               </div>
-              <P className="text-sm font-medium mt-0 group-hover:text-primary transition-colors">
+              <P className="mt-0 font-medium text-sm transition-colors group-hover:text-primary">
                 {category.label}
               </P>
             </Link>
@@ -113,73 +116,78 @@ export function FeaturePreviewSection() {
         </div>
 
         {/* Featured templates */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+        <div className="mb-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {featuredFeatures.map((template) => (
             <div
+              className="group flex flex-col overflow-hidden rounded-xl border border-border/50 bg-background shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
               key={template.id}
-              className="group flex flex-col bg-background rounded-xl overflow-hidden shadow-sm border border-border/50 hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
             >
               {/* Feature image */}
-              <div className="relative aspect-[4/3] bg-muted overflow-hidden">
+              <div className="relative aspect-[4/3] overflow-hidden bg-muted">
                 {/* Placeholder for template screenshot */}
-                <div className="w-full h-full bg-gradient-to-br from-primary/5 via-background to-background flex items-center justify-center p-8">
+                <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary/5 via-background to-background p-8">
                   <Image
-                    src={SKILL_SECTIONS[template.category as keyof typeof SKILL_SECTIONS]?.image}
                     alt={`${template.name} illustration`}
-                    width={320}
+                    className="max-h-full w-full object-contain"
                     height={240}
-                    className="w-full max-h-full object-contain"
+                    src={
+                      SKILL_SECTIONS[
+                        template.category as keyof typeof SKILL_SECTIONS
+                      ]?.image
+                    }
+                    width={320}
                   />
                 </div>
 
                 {/* Premium badge */}
                 {template.isPremium && (
-                  <div className="absolute top-3 right-3 bg-primary text-primary-foreground text-xs px-2 py-1 rounded-full font-medium">
+                  <div className="absolute top-3 right-3 rounded-full bg-primary px-2 py-1 font-medium text-primary-foreground text-xs">
                     {t("featuresPreview.premiumBadge")}
                   </div>
                 )}
 
                 {/* Hover overlay */}
-                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                <div className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
                   <div className="grid place-content-center">
-                    <Button size="sm" variant="secondary" asChild>
-                      <Link href={template.demoUrl}>
-                        <ExternalLink className="h-4 w-4 mr-1" />
-                        {t("featuresPreview.demoButton")}
-                      </Link>
-                    </Button>
+                    <LinkButton
+                      href={template.demoUrl}
+                      size="sm"
+                      variant="secondary"
+                    >
+                      <ExternalLink className="mr-1 h-4 w-4" />
+                      {t("featuresPreview.demoButton")}
+                    </LinkButton>
                   </div>
                 </div>
               </div>
 
               {/* Feature info */}
               <div className="p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <H3 className="text-base border-none pb-0">
+                <div className="mb-2 flex items-center justify-between">
+                  <H3 className="border-none pb-0 text-base">
                     {template.name}
                   </H3>
-                  <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded">
+                  <span className="rounded bg-muted px-2 py-1 text-muted-foreground text-xs">
                     {
-                      SKILL_SECTIONS[template.category as keyof typeof SKILL_SECTIONS]
-                        ?.label
+                      SKILL_SECTIONS[
+                        template.category as keyof typeof SKILL_SECTIONS
+                      ]?.label
                     }
                   </span>
                 </div>
-                <P className="text-sm text-muted-foreground mt-0">
+                <P className="mt-0 text-muted-foreground text-sm">
                   {template.description}
                 </P>
-                <div className="flex items-center justify-between mt-3">
-                  <span className="text-sm font-medium text-primary">
+                <div className="mt-3 flex items-center justify-between">
+                  <span className="font-medium text-primary text-sm">
                     {template.isPremium
                       ? t("featuresPreview.premiumText")
                       : t("featuresPreview.freeText")}
                   </span>
-                  <Button variant="ghost" size="sm" asChild>
-                    <Link href={template.demoUrl}>
-                      {t("featuresPreview.viewDetailsButton")}
-                      <ArrowRight className="h-3 w-3 ml-1" />
-                    </Link>
-                  </Button>
+                  <LinkButton href={template.demoUrl} size="sm" variant="ghost">
+                    {t("featuresPreview.viewDetailsButton")}
+                    <ArrowRight className="ml-1 h-3 w-3" />
+                  </LinkButton>
                 </div>
               </div>
             </div>
@@ -187,36 +195,32 @@ export function FeaturePreviewSection() {
         </div>
 
         {/* CTA */}
-        <div className="text-center bg-gradient-to-r from-primary/5 to-primary/10 rounded-2xl p-8 border border-primary/20">
-          <H3 className="text-2xl mb-4 border-none pb-0">
+        <div className="rounded-2xl border border-primary/20 bg-gradient-to-r from-primary/5 to-primary/10 p-8 text-center">
+          <H3 className="mb-4 border-none pb-0 text-2xl">
             {t("featuresPreview.cta.title")}
           </H3>
-          <P className="text-muted-foreground mb-6 max-w-2xl mx-auto">
+          <P className="mx-auto mb-6 max-w-2xl text-muted-foreground">
             {t("featuresPreview.cta.description")}
           </P>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <Button asChild size="lg" className="text-lg px-8">
-              <Link href="/skills">
-                <Sparkles className="mr-2 h-5 w-5" />
-                {t("featuresPreview.cta.startTrialButton")}
-              </Link>
-            </Button>
+          <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
+            <LinkButton className="px-8 text-lg" href="/skills" size="lg">
+              <Sparkles className="mr-2 h-5 w-5" />
+              {t("featuresPreview.cta.startTrialButton")}
+            </LinkButton>
 
-            <Button
-              asChild
-              variant="outline"
+            <LinkButton
+              className="px-8 text-lg"
+              href="/contact"
               size="lg"
-              className="text-lg px-8"
+              variant="outline"
             >
-              <Link href="/contact">
-                <PlayCircleIcon className="mr-2 h-5 w-5" />
-                {t("featuresPreview.cta.watchDemoButton")}
-              </Link>
-            </Button>
+              <PlayCircleIcon className="mr-2 h-5 w-5" />
+              {t("featuresPreview.cta.watchDemoButton")}
+            </LinkButton>
           </div>
 
-          <P className="text-sm text-muted-foreground mt-4">
+          <P className="mt-4 text-muted-foreground text-sm">
             {t("featuresPreview.cta.trialNote")}
           </P>
         </div>

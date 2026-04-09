@@ -1,8 +1,7 @@
 import { relations } from "drizzle-orm";
 import { pgTable, uuid, varchar } from "drizzle-orm/pg-core";
-
+import { createdAt, id, updatedAt } from "@/drizzle/schemas/helpers";
 import { BranchMembershipsTable, UsersTable } from ".";
-import { createdAt, id, updatedAt } from "@/server/db/schemas/helpers";
 
 export const BranchesTable = pgTable("branches", {
 	id,
@@ -13,16 +12,13 @@ export const BranchesTable = pgTable("branches", {
 	updatedAt,
 });
 
-export const branchesRelations = relations(
-	BranchesTable,
-	({ many, one }) => ({
-		memberships: many(BranchMembershipsTable),
-		owner: one(UsersTable, {
-			fields: [BranchesTable.ownerId],
-			references: [UsersTable.id],
-		}),
+export const branchesRelations = relations(BranchesTable, ({ many, one }) => ({
+	memberships: many(BranchMembershipsTable),
+	owner: one(UsersTable, {
+		fields: [BranchesTable.ownerId],
+		references: [UsersTable.id],
 	}),
-);
+}));
 
 export type Branch = typeof BranchesTable.$inferSelect;
 export type NewBranch = typeof BranchesTable.$inferInsert;

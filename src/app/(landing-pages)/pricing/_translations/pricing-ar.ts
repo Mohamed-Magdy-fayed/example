@@ -2,6 +2,25 @@ import { dt, type LanguageMessages } from "@/features/core/i18n/lib";
 
 export default {
     pricing: {
+        projects: {
+            card: {
+                preview: 'معاينة المشروع',
+                viewProject: 'عرض المشروع {title}',
+                visitSite: 'زيارة الموقع',
+                viewCode: 'عرض الكود',
+                learnMore: 'اعرف المزيد',
+            },
+            detail: {
+                status: {
+                    draft: 'مسودة',
+                    published: 'منشور',
+                    archived: 'مؤرشف',
+                },
+                badges: {
+                    featured: 'مميز',
+                },
+            },
+        },
         hero: {
             badge: 'أسعار مرنة',
             title: 'اختر الخطة المثالية لأكاديميتك',

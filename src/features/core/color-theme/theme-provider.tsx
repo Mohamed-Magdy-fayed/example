@@ -1,32 +1,31 @@
 "use client";
 
-import { ThemeProvider as NextThemeProvider, useTheme } from "next-themes";
-import { useEffect } from "react";
+import { createContext, type PropsWithChildren, startTransition, use } from "react";
 
-import { setThemeCookie } from "@/features/core/color-theme/theme";
+import { setThemeCookie, type Theme } from "@/features/core/color-theme/theme";
 
-export { useTheme };
+type ThemeContextVal = { theme: Theme; setTheme: (data: Theme) => void };
+type Props = PropsWithChildren<{ theme: Theme }>;
 
-export function ThemeProvider({
-	children,
-	defaultTheme,
-	...props
-}: React.ComponentProps<typeof NextThemeProvider>) {
-	const { theme } = useTheme();
+const ThemeContext = createContext<ThemeContextVal | null>(null);
 
-	useEffect(() => {
-		setThemeCookie(theme as "light" | "dark");
-	}, [theme]);
+export function ThemeProvider({ children, theme }: Props) {
+	function setTheme(val: Theme) {
+		document.documentElement.classList.toggle('dark')
+		startTransition(async () => {
+			await setThemeCookie(val);
+		})
+	}
 
 	return (
-		<NextThemeProvider
-			attribute="class"
-			defaultTheme={defaultTheme}
-			disableTransitionOnChange
-			enableSystem
-			{...props}
-		>
+		<ThemeContext.Provider value={{ theme, setTheme }}>
 			{children}
-		</NextThemeProvider>
+		</ThemeContext.Provider>
 	);
+}
+
+export function useTheme() {
+	const val = use(ThemeContext);
+	if (!val) throw new Error("useTheme called outside of ThemeProvider!");
+	return val;
 }

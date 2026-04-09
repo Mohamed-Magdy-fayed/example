@@ -2,6 +2,25 @@ import { dt, type LanguageMessages } from "@/features/core/i18n/lib";
 
 export default {
     pricing: {
+        projects: {
+            card: {
+                preview: "Project preview",
+                viewProject: "View project {title}",
+                visitSite: "Visit site",
+                viewCode: "View code",
+                learnMore: "Learn more",
+            },
+            detail: {
+                status: {
+                    draft: "Draft",
+                    published: "Published",
+                    archived: "Archived",
+                },
+                badges: {
+                    featured: "Featured",
+                },
+            },
+        },
         hero: {
             badge: 'Flexible Pricing',
             title: 'Choose the Perfect Plan for Your Academy',

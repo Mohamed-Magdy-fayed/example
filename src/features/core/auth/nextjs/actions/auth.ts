@@ -3,29 +3,36 @@
 import { eq } from "drizzle-orm";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-
+import { db } from "@/drizzle";
 import { getOAuthClient } from "@/features/core/auth/core";
-import {
-    authError,
-    normalizeEmail,
-} from "@/features/core/auth/core/helpers";
+import { authError, normalizeEmail } from "@/features/core/auth/core/helpers";
 import {
     comparePasswords,
     generateSalt,
     hashPassword,
 } from "@/features/core/auth/core/passwordHasher";
-import { createSession, removeSession } from "@/features/core/auth/core/session";
+import {
+    createSession,
+    removeSession,
+} from "@/features/core/auth/core/session";
 import { getCurrentUser } from "@/features/core/auth/nextjs/currentUser";
-import { customerDetailsStepSchema, signInSchema, signUpSchema } from "@/features/core/auth/schemas";
+import {
+    customerDetailsStepSchema,
+    signInSchema,
+    signUpSchema,
+} from "@/features/core/auth/schemas";
 import {
     type OAuthProvider,
     UserCredentialsTable,
     UsersTable,
 } from "@/features/core/auth/tables";
-import type { AuthState, PartialUser, TypedResponse } from "@/features/core/auth/types";
+import type {
+    AuthState,
+    PartialUser,
+    TypedResponse,
+} from "@/features/core/auth/types";
 import { getT } from "@/features/core/i18n/actions";
-import { db } from "@/server/db";
-import { assertPhoneVerified } from "@/server/whatsapp/otp";
+import { assertPhoneVerified } from "@/integrations/whatsapp/otp";
 
 export async function signInAction(
     input: unknown,
@@ -189,6 +196,12 @@ export async function getAuth(): Promise<AuthState> {
 
     return {
         isAuthenticated: true,
-        session: { user: fullUser, hasPassword: !!(userCredentials && (!userCredentials.expiresAt || userCredentials.expiresAt > new Date())) },
+        session: {
+            user: fullUser,
+            hasPassword: !!(
+                userCredentials &&
+                (!userCredentials.expiresAt || userCredentials.expiresAt > new Date())
+            ),
+        },
     };
 }

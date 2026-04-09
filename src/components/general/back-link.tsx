@@ -1,15 +1,20 @@
 import { ArrowLeftIcon } from "lucide-react";
-import Link from "next/link";
+import type { ComponentProps } from "react";
 
-import { Button, type ButtonProps } from "@/components/ui/button";
+import { LinkButton } from "@/components/general/link-button";
 
-export function BackLink({ href, text, ...props }: { href: string; text?: string } & ButtonProps) {
+export function BackLink({
+    href,
+    text,
+    ...props
+}: { href: string; text?: string } & ComponentProps<typeof LinkButton>) {
     return (
-        <Button asChild {...props}>
-            <Link href={href}>
-                <ArrowLeftIcon className="rtl:rotate-180" />
-                {text}
-            </Link>
-        </Button>
-    )
+        <LinkButton
+            {...props}
+            href={href}
+        >
+            <ArrowLeftIcon className="rtl:rotate-180" />
+            {text}
+        </LinkButton>
+    );
 }

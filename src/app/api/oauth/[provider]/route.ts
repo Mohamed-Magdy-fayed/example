@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import type { NextRequest } from "next/server";
 import { z } from "zod";
-
+import { db } from "@/drizzle";
 import {
 	createSession,
 	getOAuthClient,
@@ -17,7 +17,6 @@ import {
 	UsersTable,
 } from "@/features/core/auth/tables";
 import type { PartialUser } from "@/features/core/auth/types";
-import { db } from "@/server/db";
 
 export async function GET(
 	request: NextRequest,
@@ -31,6 +30,12 @@ export async function GET(
 		.safeParse(rawProvider);
 
 	if (typeof code !== "string" || typeof state !== "string" || !success) {
+		console.error("Invalid OAuth callback parameters", {
+			code,
+			state,
+			provider: rawProvider,
+		});
+
 		redirect(
 			`/sign-in?oauthError=${encodeURIComponent(
 				"Failed to connect. Please try again.",
@@ -41,10 +46,10 @@ export async function GET(
 	const cookieJar = await cookies();
 	const currentSession = await getSessionFromCookie(cookieJar);
 	const oAuthClient = getOAuthClient(provider);
+	let user: PartialUser | null = null;
+
 	try {
 		const oAuthUser = await oAuthClient.fetchUser(code, state, cookieJar);
-
-		let user: PartialUser | null = null;
 
 		if (currentSession?.id) {
 			user = await connectUserToAccount(oAuthUser, provider, {
@@ -69,23 +74,10 @@ export async function GET(
 				? error.message || "Failed to connect. Please try again."
 				: "Failed to connect. Please try again.";
 
-		// store error in a cookie so client pages (including pages behind auth) can display it
-		try {
-			cookieJar.set("oauthError", message);
-		} catch { }
-
-		if (error instanceof Error) {
-			redirect(
-				`/sign-in?oauthError=${encodeURIComponent(message)}`,
-			);
-		} else if (error instanceof DrizzleError) {
-			redirect(
-				`/sign-in?oauthError=${encodeURIComponent(message)}`,
-			);
-		}
+		redirect(`/sign-in?oauthError=${encodeURIComponent(message)}`);
 	}
 
-	redirect("/");
+	redirect(user.role === "customer" ? "/" : "/dashboard");
 }
 
 type ConnectOptions = { currentUserId?: string };
@@ -133,7 +125,7 @@ function connectUserToAccount(
 					email: normalizedEmail,
 					emailVerifiedAt: new Date(),
 					role: "customer",
-					createdBy: "system",
+					createdBy: "sign-up",
 				})
 				.returning({
 					id: UsersTable.id,

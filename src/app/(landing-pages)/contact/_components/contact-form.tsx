@@ -1,6 +1,7 @@
 "use client";
 
 import { SendIcon } from "lucide-react";
+import { useTransition } from "react";
 import { toast } from "sonner";
 
 import {
@@ -14,11 +15,8 @@ import { FieldGroup, FieldSet } from "@/components/ui/field";
 import { LoadingSwap } from "@/components/ui/loading-swap";
 import { Textarea } from "@/components/ui/textarea";
 import { useTranslation } from "@/features/core/i18n/useTranslation";
-import {
-    type ContactFormData,
-    contactFormSchema,
-} from "@/server/db/schemas/customer/messages-table";
-import { api } from "@/trpc/react";
+import { sendContactMessageAction } from "../actions";
+import { type ContactFormData, contactFormSchema } from "../schema";
 
 function FormTextareaField({
     placeholder,
@@ -51,8 +49,7 @@ function FormTextareaField({
 
 export default function ContactForm() {
     const { t } = useTranslation();
-
-    const sendMessageMutation = api.contactRouter.sendMessage.useMutation();
+    const [isPending, startTransition] = useTransition();
 
     const form = useAppForm({
         defaultValues: {
@@ -68,25 +65,28 @@ export default function ContactForm() {
             onSubmit: contactFormSchema,
         },
         onSubmit: async ({ value }) => {
-            try {
-                const payload = {
-                    ...value,
-                    contactReason: value.contactReason || "other",
-                } satisfies ContactFormData as ContactFormData;
+            startTransition(async () => {
+                try {
+                    const payload = {
+                        ...value,
+                        contactReason: value.contactReason || "other",
+                    } satisfies ContactFormData as ContactFormData;
 
-                const isSuccess = await sendMessageMutation.mutateAsync(payload);
+                    const result = await sendContactMessageAction(payload);
 
-                if (isSuccess) {
+                    if (result.isError) {
+                        toast.error(result.message ?? t("contact.form.error"));
+                        return;
+                    }
+
                     form.reset();
                     toast.success(t("contact.form.success"));
-                } else {
-                    toast.error(t("contact.form.error"));
+                } catch (error) {
+                    toast.error(
+                        error instanceof Error ? error.message : t("contact.form.error"),
+                    );
                 }
-            } catch (error) {
-                toast.error(
-                    error instanceof Error ? error.message : t("contact.form.error"),
-                );
-            }
+            });
         },
     });
 
@@ -97,9 +97,9 @@ export default function ContactForm() {
                 form.handleSubmit();
             }}
         >
-            <FieldSet disabled={sendMessageMutation.isPending} className="gap-6">
+            <FieldSet className="gap-6" disabled={isPending}>
                 <FieldGroup>
-                    <div className="grid md:grid-cols-2 gap-4">
+                    <div className="grid gap-4 md:grid-cols-2">
                         <form.AppField name="name">
                             {(field) => (
                                 <field.StringField
@@ -119,7 +119,7 @@ export default function ContactForm() {
                         </form.AppField>
                     </div>
 
-                    <div className="grid md:grid-cols-2 gap-4">
+                    <div className="grid gap-4 md:grid-cols-2">
                         <form.AppField name="company">
                             {(field) => (
                                 <field.StringField
@@ -157,18 +157,14 @@ export default function ContactForm() {
                                     },
                                     {
                                         value: "partnership",
-                                        label: t(
-                                            "contact.form.fields.reason.options.partnership",
-                                        ),
+                                        label: t("contact.form.fields.reason.options.partnership"),
                                     },
                                     {
                                         value: "other",
                                         label: t("contact.form.fields.reason.options.other"),
                                     },
                                 ]}
-                                placeholder={t(
-                                    "contact.form.fields.reason.placeholder",
-                                )}
+                                placeholder={t("contact.form.fields.reason.placeholder")}
                             />
                         )}
                     </form.AppField>
@@ -193,10 +189,10 @@ export default function ContactForm() {
                     </form.AppField>
 
                     <Button
+                        className="w-full transition-transform duration-300 hover:translate-y-0.5"
                         type="submit"
-                        className="w-full hover:translate-y-0.5 transition-transform duration-300"
                     >
-                        <LoadingSwap isLoading={sendMessageMutation.isPending}>
+                        <LoadingSwap isLoading={isPending}>
                             <SendIcon />
                             {t("contact.form.submit")}
                         </LoadingSwap>

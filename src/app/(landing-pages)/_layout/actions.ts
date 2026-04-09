@@ -1,10 +1,12 @@
 "use server";
 
-import type { ActionReturnType } from "@/components/ui/action-button";
-import { db } from "@/server/db";
-import { subscribersTable } from "@/server/db/schema";
+import { db } from "@/drizzle";
+import { subscribersTable } from "@/drizzle/schema";
+import type { TypedResponse } from "@/features/core/auth/types";
 
-export async function subscribeToNewsletter(email: string): ActionReturnType {
+export async function subscribeToNewsletter(
+    email: string,
+): Promise<TypedResponse<{ message: string }>> {
     try {
         await db
             .insert(subscribersTable)
@@ -14,12 +16,12 @@ export async function subscribeToNewsletter(email: string): ActionReturnType {
             .then((r) => r[0]);
 
         return {
-            error: false,
+            isError: false,
             message: "Subscribed successfully",
-        }
+        };
     } catch (error) {
         return {
-            error: true,
+            isError: true,
             message: `Failed to subscribe ${error}`,
         };
     }

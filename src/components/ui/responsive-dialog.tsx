@@ -1,6 +1,6 @@
 "use client";
 
-import { Activity, type ComponentPropsWithoutRef } from "react";
+import type { ComponentPropsWithoutRef } from "react";
 
 import {
     Dialog,
@@ -21,33 +21,34 @@ interface ResponsiveDialogProps
 
 export function ResponsiveDialog({ ...props }: ResponsiveDialogProps) {
     const isMobile = useIsMobile();
+    const isModal = props.modal === undefined ? undefined : props.modal !== false;
+
+    if (isMobile) {
+        return (
+            <Drawer
+                defaultOpen={props.defaultOpen}
+                modal={isModal}
+                onOpenChange={(open) => props.onOpenChange?.(open, {} as never)}
+                open={props.open}
+            >
+                <DrawerContent>
+                    <DrawerHeader className="sr-only hidden">
+                        <DrawerTitle>Custom Drawer Title</DrawerTitle>
+                    </DrawerHeader>
+                    <div className="p-4">{props.children as React.ReactNode}</div>
+                </DrawerContent>
+            </Drawer>
+        );
+    }
 
     return (
-        <>
-            <Activity mode={isMobile ? "hidden" : "visible"}>
-                <Dialog {...props}>
-                    <DialogContent>
-                        <DialogHeader className="sr-only hidden">
-                            <DialogTitle>Custom Dialog Title</DialogTitle>
-                        </DialogHeader>
-                        <div className="p-4">
-                            {props.children}
-                        </div>
-                    </DialogContent>
-                </Dialog>
-            </Activity>
-            <Activity mode={!isMobile ? "hidden" : "visible"}>
-                <Drawer {...props}>
-                    <DrawerContent>
-                        <DrawerHeader className="sr-only hidden">
-                            <DrawerTitle>Custom Drawer Title</DrawerTitle>
-                        </DrawerHeader>
-                        <div className="p-4">
-                            {props.children}
-                        </div>
-                    </DrawerContent>
-                </Drawer>
-            </Activity>
-        </>
+        <Dialog {...props}>
+            <DialogContent>
+                <DialogHeader className="sr-only hidden">
+                    <DialogTitle>Custom Dialog Title</DialogTitle>
+                </DialogHeader>
+                <div className="p-4">{props.children as React.ReactNode}</div>
+            </DialogContent>
+        </Dialog>
     );
 }

@@ -18,7 +18,7 @@ import type {
 } from "drizzle-orm/pg-core";
 
 import type { FilterVariant } from "@/components/data-table/types";
-import { db } from "@/server/db";
+import { db } from "@/drizzle";
 
 export type MetaMapEntry = {
     variant: FilterVariant;

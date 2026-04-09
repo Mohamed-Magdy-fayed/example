@@ -8,6 +8,17 @@ function escapeCsvValue(value: any): string {
     return stringValue;
 }
 
+export interface CsvExportColumn {
+    key: string;
+    header?: string;
+}
+
+interface CsvExportOptions {
+    columns?: CsvExportColumn[];
+    includeBom?: boolean;
+    lineEnding?: "\n" | "\r\n";
+}
+
 /**
  * Parses a CSV file and converts it to an array of objects.
  * This is the no-library equivalent of `importFromExcel`.
@@ -66,32 +77,41 @@ export const importFromCsv = (file: File, onFileLoad: (data: any[]) => void) => 
  * @param data The array of objects to export.
  * @param fileName The desired name of the downloaded file (without extension).
  */
-export function exportToCsv(data: any[], fileName: string) {
+export function exportToCsv(
+    data: Array<Record<string, unknown>>,
+    fileName: string,
+    options: CsvExportOptions = {},
+) {
     if (data.length === 0) {
         alert("No data to export.");
         return;
     }
 
-    const headers = Object.keys(data[0]);
-    const csvRows = [
-        headers.join(","), // Header row
-    ];
+    const columns =
+        options.columns && options.columns.length > 0
+            ? options.columns
+            : Object.keys(data[0] ?? {}).map((key) => ({ key, header: key }));
+
+    const lineEnding = options.lineEnding ?? "\r\n";
+    const includeBom = options.includeBom ?? true;
+    const csvRows = [columns.map((column) => escapeCsvValue(column.header ?? column.key)).join(",")];
 
     // Data rows
-    data.forEach(item => {
-        const values = headers.map(header => escapeCsvValue(item[header]));
+    data.forEach((item) => {
+        const values = columns.map((column) => escapeCsvValue(item[column.key]));
         csvRows.push(values.join(","));
     });
 
-    const csvString = csvRows.join("\n");
-    const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+    const csvString = csvRows.join(lineEnding);
+    const payload = includeBom ? `\uFEFF${csvString}` : csvString;
+    const blob = new Blob([payload], { type: "text/csv;charset=utf-8;" });
 
     // Trigger download
     const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.setAttribute('href', url);
-    a.setAttribute('download', `${fileName}.csv`);
-    a.style.display = 'none';
+    const a = document.createElement("a");
+    a.setAttribute("href", url);
+    a.setAttribute("download", `${fileName}.csv`);
+    a.style.display = "none";
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -110,14 +130,14 @@ export function downloadCsvTemplate({ requiredFields, templateName }: { required
     }
 
     const headerString = requiredFields.map(escapeCsvValue).join(",");
-    const blob = new Blob([headerString], { type: 'text/csv;charset=utf-8;' });
+    const blob = new Blob([`\uFEFF${headerString}`], { type: "text/csv;charset=utf-8;" });
 
     // Trigger download
     const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.setAttribute('href', url);
-    a.setAttribute('download', `${templateName}.csv`);
-    a.style.display = 'none';
+    const a = document.createElement("a");
+    a.setAttribute("href", url);
+    a.setAttribute("download", `${templateName}.csv`);
+    a.style.display = "none";
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);

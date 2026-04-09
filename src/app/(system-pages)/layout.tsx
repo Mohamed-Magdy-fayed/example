@@ -15,23 +15,15 @@ import {
     SidebarSeparator,
     SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { getT } from "@/features/core/i18n/actions";
 
 export default async function SystemPagesLayout({
     children,
 }: {
     children: React.ReactNode;
 }) {
-    const { locale } = await getT();
-    const dir = locale === "ar" ? "rtl" : "ltr";
-
     return (
-        <SidebarProvider>
-            <Sidebar
-                collapsible="icon"
-                side="left"
-                variant="inset"
-            >
+        <SidebarProvider className="h-svh overflow-hidden">
+            <Sidebar collapsible="icon" variant="inset">
                 <SidebarHeader>
                     <SidebarBranch />
                     <SidebarSeparator className="mx-0" />
@@ -49,7 +41,7 @@ export default async function SystemPagesLayout({
                 </SidebarFooter>
                 <SidebarRail />
             </Sidebar>
-            <SidebarInset>
+            <SidebarInset className="h-svh min-h-0 min-w-0 overflow-hidden">
                 <header className="flex shrink-0 items-center gap-2 p-4">
                     <div className="flex items-center gap-2">
                         <SidebarTrigger />

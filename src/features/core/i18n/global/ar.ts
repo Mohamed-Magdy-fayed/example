@@ -1,7 +1,3 @@
-import dataTableAr from "@/components/data-table/i18n/data-table-ar";
-import authAr from "@/features/core/auth/translations/auth-ar";
-import usersAr from "@/features/users/i18n/users-ar";
-import { dt, type LanguageMessages } from "../lib";
 import landingAr from "@/app/(landing-pages)/_components/_translations/landing-ar";
 import layoutAr from "@/app/(landing-pages)/_layout/_translations/layout-ar";
 import aboutAr from "@/app/(landing-pages)/about/_translations/about-ar";
@@ -13,6 +9,10 @@ import privacyAr from "@/app/(landing-pages)/privacy/_translations/privacy-ar";
 import refundAr from "@/app/(landing-pages)/refund/_translations/refund-ar";
 import skillsAr from "@/app/(landing-pages)/skills/_translations/skills-ar";
 import termsAr from "@/app/(landing-pages)/terms/_translations/terms-ar";
+import dataTableAr from "@/components/data-table/i18n/data-table-ar";
+import authAr from "@/features/core/auth/translations/auth-ar";
+import usersAr from "@/features/users/i18n/users-ar";
+import { dt, type LanguageMessages } from "../lib";
 
 export default {
   locale: "ar",
@@ -29,7 +29,11 @@ export default {
     empty: "لا توجد بيانات متاحة.",
     menu: "القائمة",
     today: "اليوم",
+    yesterday: "أمس",
     tomorrow: "غدًا",
+    last7Days: "آخر 7 أيام",
+    last30Days: "آخر 30 يومًا",
+    lastMonth: "الشهر الماضي",
     loading: "جاري التحميل...",
     auditInfo: "معلومات التدقيق",
     active: "نشط",
@@ -75,6 +79,7 @@ export default {
     clear: "مسح",
     info: "معلومات",
     all: "الكل",
+    noOptionsFound: "لا توجد خيارات.",
     selectDateRange: "تحديد نطاق التاريخ",
     selectDates: "تحديد التواريخ",
     selectDate: "تحديد التاريخ",
@@ -192,6 +197,7 @@ export default {
     goToPreviousPage: "الانتقال إلى الصفحة السابقة",
     goToNextPage: "الانتقال إلى الصفحة التالية",
     goToLastPage: "الانتقال إلى الصفحة الأخيرة",
+    filters: "الفلاتر",
     clearFilters: "مسح الفلاتر",
     resetFilters: "إعادة تعيين الفلاتر",
   },
@@ -217,8 +223,8 @@ export default {
         QA: "قطر",
         BH: "البحرين",
         YE: "اليمن",
-      }
-    }
+      },
+    },
   }),
   ...authAr,
   ...dataTableAr,

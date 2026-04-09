@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, type DependencyList } from "react";
+import { type DependencyList, useEffect, useRef, useState } from "react";
 
 export const useScrollAnimation = (...deps: DependencyList) => {
     const [isVisible, setIsVisible] = useState(false);
@@ -11,7 +11,7 @@ export const useScrollAnimation = (...deps: DependencyList) => {
                     setIsVisible(true);
                 }
             },
-            { threshold: 0.1 }
+            { threshold: 0.1 },
         );
 
         if (elementRef.current) {

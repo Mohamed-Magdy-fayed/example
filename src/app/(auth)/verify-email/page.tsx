@@ -33,12 +33,14 @@ export default async function VerifyEmailPage({
                 <VerificationResult token={token ?? undefined} />
             </Suspense>
 
-            <Button asChild>
-                <Link href="/">
-                    <Home aria-hidden className="me-2 h-4 w-4" />
-                    {t("authTranslations.emailVerification.backHome")}
-                </Link>
-            </Button>
+            <Button
+                render={
+                    <Link href="/">
+                        <Home aria-hidden className="me-2 h-4 w-4" />
+                        {t("authTranslations.emailVerification.backHome")}
+                    </Link>
+                }
+            />
         </div>
     );
 }

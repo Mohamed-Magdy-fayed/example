@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import {
     Command,
     CommandEmpty,
-    CommandInput,
     CommandItem,
     CommandList,
 } from "@/components/ui/command";
@@ -16,13 +15,9 @@ import {
     InputGroup,
     InputGroupAddon,
     InputGroupButton,
+    InputGroupInput,
     InputGroupText,
 } from "@/components/ui/input-group";
-import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
-} from "@/components/ui/popover";
 import { Spinner } from "@/components/ui/spinner";
 import { useTranslation } from "@/features/core/i18n/useTranslation";
 import { cn } from "@/lib/utils";
@@ -42,6 +37,7 @@ type SearchLookupBaseProps = {
     loading?: boolean;
     onSearch?: (query: string) => void;
     minChars?: number;
+    maxResults?: number;
     className?: string;
 };
 
@@ -89,18 +85,22 @@ function HighlightMatch({ text, query }: { text: string; query: string }) {
 /* ─── Component ─── */
 
 function SearchLookup(props: SearchLookupProps) {
+    const { t } = useTranslation();
     const {
         items,
-        placeholder = "Search…",
-        emptyText = "No results found.",
+        placeholder = "Search...",
+        emptyText = t("dataTableTranslations.noResults"),
         loading = false,
         onSearch,
         minChars = 0,
+        maxResults = 10,
         className,
     } = props;
 
     const isMulti = props.multiple === true;
-    const { t } = useTranslation();
+
+    const rootRef = React.useRef<HTMLDivElement>(null);
+    const inputRef = React.useRef<HTMLInputElement>(null);
 
     const [open, setOpen] = React.useState(false);
     const [search, setSearch] = React.useState("");
@@ -119,12 +119,52 @@ function SearchLookup(props: SearchLookupProps) {
         ? (props.value as string[]).length > 0
         : !!props.value;
 
+    React.useEffect(() => {
+        if (isMulti) return;
+
+        const selectedValue = props.value as string | null;
+        if (!selectedValue) {
+            setSearch("");
+            return;
+        }
+
+        const selected = items.find((item) => item.value === selectedValue);
+        if (selected) {
+            setSearch(selected.label);
+        }
+    }, [isMulti, items, props.value]);
+
+    React.useEffect(() => {
+        if (!open) return;
+
+        const handlePointerDown = (event: MouseEvent) => {
+            if (!rootRef.current) return;
+            if (!rootRef.current.contains(event.target as Node)) {
+                setOpen(false);
+            }
+        };
+
+        document.addEventListener("mousedown", handlePointerDown);
+        return () => {
+            document.removeEventListener("mousedown", handlePointerDown);
+        };
+    }, [open]);
+
+    React.useEffect(() => {
+        if (!open) return;
+        onSearch?.(search);
+    }, [open, onSearch]);
+
     const handleSearchChange = React.useCallback(
         (val: string) => {
             setSearch(val);
+            if (!open) {
+                setOpen(true);
+                return;
+            }
             onSearch?.(val);
         },
-        [onSearch],
+        [onSearch, open],
     );
 
     const handleSelect = React.useCallback(
@@ -136,13 +176,16 @@ function SearchLookup(props: SearchLookupProps) {
                     : [...current, item.value];
                 (props.onValueChange as (val: string[]) => void)(next);
                 setSearch("");
+                onSearch?.("");
+                setOpen(true);
+                inputRef.current?.focus();
             } else {
                 (props.onValueChange as (val: string | null) => void)(item.value);
-                setSearch("");
+                setSearch(item.label);
                 setOpen(false);
             }
         },
-        [isMulti, props.value, props.onValueChange],
+        [isMulti, onSearch, props.value, props.onValueChange],
     );
 
     const handleRemove = React.useCallback(
@@ -164,165 +207,163 @@ function SearchLookup(props: SearchLookupProps) {
                 (props.onValueChange as (val: string | null) => void)(null);
             }
             setSearch("");
+            onSearch?.("");
         },
-        [isMulti, props.onValueChange],
+        [isMulti, onSearch, props.onValueChange],
     );
 
     const insufficientChars = minChars > 0 && search.length < minChars;
 
+    const filteredItems = React.useMemo(() => {
+        const trimmed = search.trim().toLowerCase();
+        const source = onSearch
+            ? items
+            : items.filter((item) => {
+                if (!trimmed) return true;
+                return (
+                    item.label.toLowerCase().includes(trimmed) ||
+                    item.description?.toLowerCase().includes(trimmed)
+                );
+            });
+
+        return source.slice(0, maxResults);
+    }, [items, maxResults, onSearch, search]);
+
+    const openLookup = React.useCallback(() => {
+        setOpen(true);
+    }, []);
+
     return (
-        <Popover onOpenChange={setOpen} open={open}>
-            <PopoverTrigger asChild>
-                <InputGroup
-                    className={cn(
-                        "w-full font-normal px-1",
-                        isMulti && "h-auto min-h-8",
-                        !hasValue && "text-muted-foreground",
-                        className,
-                    )}
-                    role="combobox"
-                >
-                    {isMulti && selectedItems.length > 0 ? (
-                        <InputGroupText className="flex flex-wrap gap-1 w-full">
-                            {selectedItems.length >= 3 ? (
-                                <Badge variant="secondary">
-                                    {t("common.selectedCount", {
-                                        count: String(selectedItems.length),
-                                    })}
-                                </Badge>
-                            ) : (
-                                selectedItems.map((item) => (
-                                    <Badge key={item.value} variant="secondary">
-                                        {item.label}
-                                        <Button
-                                            className="-me-1 rounded-sm opacity-50 hover:opacity-100"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                handleRemove(item.value);
-                                            }}
-                                            onKeyDown={(e) => {
-                                                if (
-                                                    e.key === "Enter" ||
-                                                    e.key === " "
-                                                ) {
-                                                    e.stopPropagation();
-                                                    handleRemove(item.value);
-                                                }
-                                            }}
-                                            tabIndex={-1}
-                                            type="button"
-                                            variant="ghost"
-                                        >
-                                            <XIcon />
-                                        </Button>
-                                    </Badge>
-                                ))
-                            )}
-                        </InputGroupText>
-                    ) : (
-                        <InputGroupAddon
-                            align="inline-start"
-                            className="w-full justify-start truncate"
-                        >
-                            {!isMulti && selectedItems[0]?.label
-                                ? selectedItems[0].label
-                                : placeholder}
-                        </InputGroupAddon>
-                    )}
-                    {hasValue && (
-                        <InputGroupButton
-                            onClick={handleClear}
-                            onKeyDown={(e) => {
-                                if (e.key === "Enter" || e.key === " ") {
-                                    e.stopPropagation();
-                                    handleClear(
-                                        e as unknown as React.MouseEvent,
-                                    );
-                                }
-                            }}
-                            tabIndex={-1}
-                        >
-                            <XIcon />
-                        </InputGroupButton>
-                    )}
-                    <InputGroupButton>
-                        <ChevronDownIcon />
-                    </InputGroupButton>
-                </InputGroup>
-            </PopoverTrigger>
-            <PopoverContent
-                align="start"
-                className="w-(--radix-popover-trigger-width) p-0"
+        <div className={cn("relative w-full", className)} ref={rootRef}>
+            <InputGroup
+                className={cn(
+                    "w-full px-1 font-normal",
+                    isMulti && "h-auto min-h-8",
+                    !hasValue && !search && "text-muted-foreground",
+                )}
+                role="combobox"
             >
-                <Command shouldFilter={!onSearch}>
-                    <CommandInput
-                        onValueChange={handleSearchChange}
-                        placeholder={placeholder}
-                        value={search}
-                    />
-                    <CommandList>
-                        {loading ? (
-                            <div className="flex items-center justify-center py-4">
-                                <Spinner className="size-4" />
-                            </div>
-                        ) : insufficientChars ? (
-                            <p className="py-4 text-center text-muted-foreground text-xs">
-                                {t("common.typeAtLeast", { count: String(minChars) })}
-                            </p>
-                        ) : (
-                            <>
-                                <CommandEmpty>{emptyText}</CommandEmpty>
-                                {items.map((item) => {
-                                    const isSelected = selectedValues.has(
-                                        item.value,
-                                    );
-                                    return (
-                                        <CommandItem
-                                            data-checked={isSelected}
-                                            key={item.value}
-                                            keywords={
-                                                item.description
-                                                    ? [item.description]
-                                                    : undefined
-                                            }
-                                            onSelect={() => handleSelect(item)}
-                                            value={item.label}
-                                        >
-                                            <span className="flex min-w-0 flex-col gap-0.5">
-                                                <span>
-                                                    {onSearch ? (
-                                                        <HighlightMatch
-                                                            query={search}
-                                                            text={item.label}
-                                                        />
-                                                    ) : (
-                                                        item.label
-                                                    )}
-                                                </span>
-                                                {item.description && (
-                                                    <span className="text-[0.625rem] text-muted-foreground leading-snug">
-                                                        {onSearch ? (
+                {isMulti && selectedItems.length > 0 ? (
+                    <InputGroupText className="flex min-w-0 max-w-full flex-wrap gap-1 py-1">
+                        {selectedItems.map((item) => (
+                            <Badge key={item.value} variant="outline">
+                                {item.label}
+                                <Button
+                                    className="rounded-full bg-transparent opacity-50 hover:bg-transparent hover:opacity-100"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleRemove(item.value);
+                                    }}
+                                    onKeyDown={(e) => {
+                                        if (e.key === "Enter" || e.key === " ") {
+                                            e.stopPropagation();
+                                            handleRemove(item.value);
+                                        }
+                                    }}
+                                    tabIndex={-1}
+                                    type="button"
+                                    variant="secondary"
+                                >
+                                    <XIcon />
+                                </Button>
+                            </Badge>
+                        ))}
+                    </InputGroupText>
+                ) : null}
+
+                <InputGroupInput
+                    onChange={(e) => handleSearchChange(e.target.value)}
+                    onFocus={openLookup}
+                    placeholder={hasValue ? undefined : placeholder}
+                    ref={inputRef}
+                    value={search}
+                />
+
+                {(hasValue || search.length > 0) && (
+                    <InputGroupButton
+                        onClick={handleClear}
+                        onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                                e.stopPropagation();
+                                handleClear(e as unknown as React.MouseEvent);
+                            }
+                        }}
+                        tabIndex={-1}
+                    >
+                        <XIcon />
+                    </InputGroupButton>
+                )}
+
+                <InputGroupAddon align="inline-end" className="pe-0">
+                    <InputGroupButton
+                        onClick={() => {
+                            const next = !open;
+                            setOpen(next);
+                            if (next) {
+                                inputRef.current?.focus();
+                            }
+                        }}
+                    >
+                        <ChevronDownIcon
+                            className={cn("transition-transform", open && "rotate-180")}
+                        />
+                    </InputGroupButton>
+                </InputGroupAddon>
+            </InputGroup>
+
+            {open && (
+                <div className="absolute top-full z-50 mt-1 w-full rounded-lg bg-popover p-0 text-popover-foreground shadow-md outline-hidden ring-1 ring-foreground/10">
+                    <Command shouldFilter={false}>
+                        <CommandList>
+                            {loading ? (
+                                <div className="flex items-center justify-center py-4">
+                                    <Spinner className="size-4" />
+                                </div>
+                            ) : insufficientChars ? (
+                                <p className="py-4 text-center text-muted-foreground text-xs">
+                                    {t("common.typeAtLeast", { count: String(minChars) })}
+                                </p>
+                            ) : (
+                                <>
+                                    <CommandEmpty>{emptyText}</CommandEmpty>
+                                    {filteredItems.map((item) => {
+                                        const isSelected = selectedValues.has(item.value);
+                                        return (
+                                            <CommandItem
+                                                data-checked={isSelected}
+                                                key={item.value}
+                                                keywords={
+                                                    item.description ? [item.description] : undefined
+                                                }
+                                                onSelect={() => handleSelect(item)}
+                                                value={item.label}
+                                            >
+                                                <span className="flex w-full min-w-0 items-center justify-between gap-3">
+                                                    {item.description && (
+                                                        <span
+                                                            className="shrink-0 text-right text-[0.625rem] text-muted-foreground leading-snug"
+                                                            dir="rtl"
+                                                        >
                                                             <HighlightMatch
                                                                 query={search}
-                                                                text={
-                                                                    item.description
-                                                                }
+                                                                text={item.description}
                                                             />
-                                                        ) : (
-                                                            item.description
-                                                        )}
+                                                        </span>
+                                                    )}
+                                                    <span className="min-w-0 truncate text-right">
+                                                        <HighlightMatch query={search} text={item.label} />
                                                     </span>
-                                                )}
-                                            </span>
-                                        </CommandItem>
-                                    );
-                                })}
-                            </>
-                        )}
-                    </CommandList>
-                </Command>
-            </PopoverContent>
-        </Popover>
+                                                </span>
+                                            </CommandItem>
+                                        );
+                                    })}
+                                </>
+                            )}
+                        </CommandList>
+                    </Command>
+                </div>
+            )}
+        </div>
     );
 }
 

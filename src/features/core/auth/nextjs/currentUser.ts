@@ -2,10 +2,9 @@ import { eq } from "drizzle-orm";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { cache } from "react";
-
+import { db } from "@/drizzle";
 import { type User, UsersTable } from "@/features/core/auth/tables/users-table";
 import type { PartialUser } from "@/features/core/auth/types";
-import { db } from "@/server/db";
 import { getSessionFromCookie } from "../core/session";
 
 function _getCurrentUser(options: {

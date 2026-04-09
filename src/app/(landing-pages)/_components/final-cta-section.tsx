@@ -1,8 +1,7 @@
 "use client";
 
 import { ArrowRight, Clock, Mail, MessageCircle, Phone } from "lucide-react";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { AnchorButton, LinkButton } from "@/components/general/link-button";
 import { H2, H3, P } from "@/components/ui/typography";
 import { useTranslation } from "@/features/core/i18n/useTranslation";
 
@@ -45,46 +44,46 @@ export function FinalCtaSection() {
   ];
 
   return (
-    <section className="py-20 bg-gradient-to-br from-primary/5 via-background to-primary/10 relative overflow-hidden">
+    <section className="relative overflow-hidden bg-gradient-to-br from-primary/5 via-background to-primary/10 py-20">
       {/* Background decoration */}
       <div className="absolute inset-0 -z-10">
-        <div className="absolute top-0 left-0 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 right-0 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
+        <div className="absolute top-0 left-0 h-96 w-96 rounded-full bg-primary/5 blur-3xl" />
+        <div className="absolute right-0 bottom-0 h-96 w-96 rounded-full bg-primary/10 blur-3xl" />
       </div>
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="max-w-4xl mx-auto text-center">
+        <div className="mx-auto max-w-4xl text-center">
           {/* Main CTA */}
           <div className="mb-12">
-            <H2 className="text-primary mb-4">{t("finalCta.mainCta.title")}</H2>
-            <P className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
+            <H2 className="mb-4 text-primary">{t("finalCta.mainCta.title")}</H2>
+            <P className="mx-auto mb-8 max-w-2xl text-lg text-muted-foreground">
               {t("finalCta.mainCta.description")}
             </P>
 
             {/* Primary CTA buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
-              <Button asChild size="lg" className="text-lg px-8 py-6">
-                <Link href="/contact">
-                  {t("finalCta.mainCta.getQuoteButton")}
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Link>
-              </Button>
-              <Button
-                variant="outline"
+            <div className="mb-8 flex flex-col justify-center gap-4 sm:flex-row">
+              <LinkButton
+                className="px-8 py-6 text-lg"
+                href="/contact"
                 size="lg"
-                asChild
-                className="text-lg px-8 py-6"
               >
-                <Link href="/projects">
-                  {t("finalCta.mainCta.browseTemplatesButton")}
-                </Link>
-              </Button>
+                {t("finalCta.mainCta.getQuoteButton")}
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </LinkButton>
+              <LinkButton
+                className="px-8 py-6 text-lg"
+                href="/projects"
+                size="lg"
+                variant="outline"
+              >
+                {t("finalCta.mainCta.browseTemplatesButton")}
+              </LinkButton>
             </div>
 
             {/* Urgency factors */}
-            <div className="flex flex-wrap justify-center gap-4 text-sm text-muted-foreground">
+            <div className="flex flex-wrap justify-center gap-4 text-muted-foreground text-sm">
               {urgencyFactors.map((factor, index) => (
-                <div key={index} className="flex items-center gap-2">
+                <div className="flex items-center gap-2" key={index}>
                   <Clock className="h-4 w-4 text-primary" />
                   <span>{factor}</span>
                 </div>
@@ -93,36 +92,35 @@ export function FinalCtaSection() {
           </div>
 
           {/* Contact methods */}
-          <div className="bg-background/80 backdrop-blur rounded-2xl p-8 shadow-lg border border-border/50">
-            <H3 className="text-primary mb-6 border-none pb-0">
+          <div className="rounded-2xl border border-border/50 bg-background/80 p-8 shadow-lg backdrop-blur">
+            <H3 className="mb-6 border-none pb-0 text-primary">
               {t("finalCta.contactMethods.header")}
             </H3>
 
-            <div className="grid md:grid-cols-3 gap-6">
+            <div className="grid gap-6 md:grid-cols-3">
               {contactMethods.map((method, index) => (
-                <div key={index} className="text-center group">
-                  <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-primary/20 transition-colors">
+                <div className="group text-center" key={index}>
+                  <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 transition-colors group-hover:bg-primary/20">
                     <method.icon className="h-8 w-8 text-primary" />
                   </div>
-                  <H3 className="text-lg mb-2 border-none pb-0">
+                  <H3 className="mb-2 border-none pb-0 text-lg">
                     {method.title}
                   </H3>
-                  <P className="text-muted-foreground text-sm mb-3 mt-0">
+                  <P className="mt-0 mb-3 text-muted-foreground text-sm">
                     {method.description}
                   </P>
-                  <P className="text-sm font-medium text-foreground mb-3 mt-0">
+                  <P className="mt-0 mb-3 font-medium text-foreground text-sm">
                     {method.value}
                   </P>
-                  <Button variant="outline" size="sm" asChild>
-                    <Link
-                      href={method.href}
-                      prefetch={false}
-                      target={method.external ? "_blank" : undefined}
-                      rel={method.external ? "noopener noreferrer" : undefined}
-                    >
-                      {method.action}
-                    </Link>
-                  </Button>
+                  <AnchorButton
+                    href={method.href}
+                    rel={method.external ? "noopener noreferrer" : undefined}
+                    size="sm"
+                    target={method.external ? "_blank" : undefined}
+                    variant="outline"
+                  >
+                    {method.action}
+                  </AnchorButton>
                 </div>
               ))}
             </div>
@@ -130,10 +128,10 @@ export function FinalCtaSection() {
 
           {/* Final reassurance */}
           <div className="mt-12 text-center">
-            <P className="text-muted-foreground mb-4">
+            <P className="mb-4 text-muted-foreground">
               {t("finalCta.finalReassurance.secureInfo")}
             </P>
-            <P className="text-sm text-muted-foreground">
+            <P className="text-muted-foreground text-sm">
               {t("finalCta.finalReassurance.stats")}
             </P>
           </div>

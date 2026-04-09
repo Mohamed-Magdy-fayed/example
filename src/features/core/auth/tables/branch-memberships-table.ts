@@ -1,12 +1,7 @@
 import { relations } from "drizzle-orm";
-import {
-	boolean,
-	pgTable,
-	primaryKey,
-	uuid,
-} from "drizzle-orm/pg-core";
+import { boolean, pgTable, primaryKey, uuid } from "drizzle-orm/pg-core";
+import { createdAt, updatedAt } from "@/drizzle/schemas/helpers";
 import { BranchesTable, UsersTable } from ".";
-import { createdAt, updatedAt } from "@/server/db/schemas/helpers";
 
 export const BranchMembershipsTable = pgTable(
 	"branch_memberships",
@@ -38,7 +33,5 @@ export const branchMembershipRelations = relations(
 	}),
 );
 
-export type BranchMembership =
-	typeof BranchMembershipsTable.$inferSelect;
-export type NewBranchMembership =
-	typeof BranchMembershipsTable.$inferInsert;
+export type BranchMembership = typeof BranchMembershipsTable.$inferSelect;
+export type NewBranchMembership = typeof BranchMembershipsTable.$inferInsert;

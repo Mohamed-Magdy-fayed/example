@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 
-import { DataTableSkeleton } from "@/components/data-table/components/data-table-skeleton";
+import { DataTableSkeleton } from "@/components/data-table/data-table-skeleton";
 import { UsersTableClient } from "@/features/users/components/users-table-client";
 import { usersTable } from "@/features/users/table";
 
@@ -11,7 +11,7 @@ interface PageProps {
 export default function EmployeePage({ searchParams }: PageProps) {
   return (
     <div
-      className="container mx-auto flex min-h-0 max-w-7xl flex-1 flex-col space-y-6 overflow-hidden p-4"
+      className="container mx-auto flex min-h-0 min-w-0 max-w-7xl flex-1 flex-col space-y-6 overflow-hidden p-4"
       id="tour-dashboard"
     >
       <Suspense

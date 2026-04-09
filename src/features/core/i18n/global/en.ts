@@ -1,7 +1,3 @@
-import dataTableEn from "@/components/data-table/i18n/data-table-en";
-import authEn from "@/features/core/auth/translations/auth-en";
-import usersEn from "@/features/users/i18n/users-en";
-import { dt, type LanguageMessages } from "../lib";
 import landingEn from "@/app/(landing-pages)/_components/_translations/landing-en";
 import layoutEn from "@/app/(landing-pages)/_layout/_translations/layout-en";
 import aboutEn from "@/app/(landing-pages)/about/_translations/about-en";
@@ -13,6 +9,10 @@ import privacyEn from "@/app/(landing-pages)/privacy/_translations/privacy-en";
 import refundEn from "@/app/(landing-pages)/refund/_translations/refund-en";
 import skillsEn from "@/app/(landing-pages)/skills/_translations/skills-en";
 import termsEn from "@/app/(landing-pages)/terms/_translations/terms-en";
+import dataTableEn from "@/components/data-table/i18n/data-table-en";
+import authEn from "@/features/core/auth/translations/auth-en";
+import usersEn from "@/features/users/i18n/users-en";
+import { dt, type LanguageMessages } from "../lib";
 
 export default {
   locale: "en",
@@ -29,7 +29,11 @@ export default {
     empty: "No data available.",
     menu: "Menu",
     today: "Today",
+    yesterday: "Yesterday",
     tomorrow: "Tomorrow",
+    last7Days: "Last 7 days",
+    last30Days: "Last 30 days",
+    lastMonth: "Last month",
     loading: "Loading...",
     auditInfo: "Audit Info",
     active: "Active",
@@ -75,6 +79,7 @@ export default {
     clear: "Clear",
     info: "Info",
     all: "All",
+    noOptionsFound: "No options found.",
     selectDateRange: "Select date range",
     selectDates: "Select dates",
     selectDate: "Select date",
@@ -194,6 +199,7 @@ export default {
     goToPreviousPage: "Go to previous page",
     goToNextPage: "Go to next page",
     goToLastPage: "Go to last page",
+    filters: "Filters",
     clearFilters: "Clear filters",
     resetFilters: "Reset filters",
   },
@@ -219,8 +225,8 @@ export default {
         QA: "Qatar",
         BH: "Bahrain",
         YE: "Yemen",
-      }
-    }
+      },
+    },
   }),
   ...authEn,
   ...dataTableEn,

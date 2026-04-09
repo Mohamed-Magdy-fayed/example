@@ -1,20 +1,12 @@
 "use client";
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useMemo, useTransition } from "react";
-import { useForm } from "react-hook-form";
+import { useMemo, useTransition } from "react";
 import { toast } from "sonner";
 import type { z } from "zod";
+import { useAppForm } from "@/components/forms/hooks";
 import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
-import {
-    Field,
-    FieldError,
-    FieldGroup,
-    FieldLabel,
-    FieldSet,
-} from "@/components/ui/field";
-import { InputGroup, InputGroupInput } from "@/components/ui/input-group";
+import { FieldGroup, FieldSet } from "@/components/ui/field";
 import {
     createBranchAction,
     updateBranchAction,
@@ -36,6 +28,8 @@ export function BranchForm({
     const { t } = useTranslation();
     const [isPending, startTransition] = useTransition();
 
+    const isEdit = branch != null;
+
     const defaultValues: FormValues = useMemo(
         () => ({
             nameEn: branch?.nameEn ?? "",
@@ -44,83 +38,70 @@ export function BranchForm({
         [branch],
     );
 
-    const form = useForm<FormValues>({
-        resolver: zodResolver(createBranchSchema),
+    const form = useAppForm({
         defaultValues,
-    });
+        validators: {
+            onSubmit: createBranchSchema,
+        },
+        onSubmit: async ({ value }) => {
+            startTransition(async () => {
+                const result = isEdit
+                    ? await updateBranchAction({
+                        ...value,
+                        branchId: branch.id,
+                    })
+                    : await createBranchAction(value);
 
-    useEffect(() => {
-        form.reset(defaultValues);
-    }, [defaultValues, form]);
+                if (result.isError) {
+                    toast.error(result.message ?? t("error", { error: "" }));
+                    return;
+                }
 
-    const { errors } = form.formState;
+                if (!isEdit) {
+                    form.reset();
+                }
 
-    const isEdit = branch != null;
-
-    const onSubmit = form.handleSubmit((values) => {
-        startTransition(async () => {
-            const result = isEdit
-                ? await updateBranchAction({
-                    ...values,
-                    branchId: branch.id,
-                })
-                : await createBranchAction(values);
-
-            if (result.isError) {
-                toast.error(result.message);
-                return;
-            }
-
-            if (!isEdit) {
-                form.reset(defaultValues);
-            }
-
-            toast.success(
-                t(
-                    isEdit
-                        ? "authTranslations.branch.actions.updateBranch.success"
-                        : "authTranslations.branch.actions.createBranch.success",
-                ),
-            );
-            onSuccess?.();
-        });
+                toast.success(
+                    t(
+                        isEdit
+                            ? "authTranslations.branch.actions.updateBranch.success"
+                            : "authTranslations.branch.actions.createBranch.success",
+                    ),
+                );
+                onSuccess?.();
+            });
+        },
     });
 
     return (
-        <form className={cn("space-y-6")} onSubmit={onSubmit}>
+        <form
+            className={cn("space-y-6")}
+            onSubmit={(event) => {
+                event.preventDefault();
+                form.handleSubmit();
+            }}
+        >
             <FieldSet disabled={isPending}>
                 <FieldGroup>
-                    <Field>
-                        <FieldLabel htmlFor="nameEn">
-                            {t("authTranslations.branch.create.nameLabel")} (EN)
-                        </FieldLabel>
-                        <InputGroup>
-                            <InputGroupInput
-                                aria-invalid={!!errors.nameEn}
-                                autoComplete="branch"
-                                id="nameEn"
+                    <form.AppField name="nameEn">
+                        {(field) => (
+                            <field.StringField
+                                label={`${t("authTranslations.branch.create.nameLabel")} (EN)`}
                                 placeholder={t("authTranslations.branch.create.namePlaceholder")}
-                                {...form.register("nameEn")}
                             />
-                        </InputGroup>
-                        <FieldError errors={[errors.nameEn]} />
-                    </Field>
-                    <Field>
-                        <FieldLabel htmlFor="nameAr">
-                            {t("authTranslations.branch.create.nameLabel")} (AR)
-                        </FieldLabel>
-                        <InputGroup>
-                            <InputGroupInput
-                                aria-invalid={!!errors.nameAr}
-                                autoComplete="branch"
-                                id="nameAr"
+                        )}
+                    </form.AppField>
+
+                    <form.AppField name="nameAr">
+                        {(field) => (
+                            <field.StringField
+                                label={`${t("authTranslations.branch.create.nameLabel")} (AR)`}
                                 placeholder={t("authTranslations.branch.create.namePlaceholder")}
-                                {...form.register("nameAr")}
                             />
-                        </InputGroup>
-                        <FieldError errors={[errors.nameAr]} />
-                    </Field>
+                        )}
+                    </form.AppField>
                 </FieldGroup>
+
                 <ButtonGroup className="justify-start">
                     <Button type="submit">
                         {isPending

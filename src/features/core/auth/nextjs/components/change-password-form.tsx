@@ -1,27 +1,20 @@
 "use client";
 
-import { useCallback, useTransition } from "react";
-import { useForm } from "react-hook-form";
+import { useTransition } from "react";
 import { toast } from "sonner";
-import type { z } from "zod";
+import { useAppForm } from "@/components/forms/hooks";
 import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
-import {
-    Field,
-    FieldError,
-    FieldGroup,
-    FieldLabel,
-} from "@/components/ui/field";
-import { InputGroup, InputGroupInput } from "@/components/ui/input-group";
+import { FieldGroup, FieldSet } from "@/components/ui/field";
 import {
     changePasswordAction,
     createPasswordAction,
 } from "@/features/core/auth/nextjs/actions";
-import type {
-    changePasswordSchema,
-    createPasswordSchema,
+import {
+    changePasswordSchema as changePasswordFormSchema,
 } from "@/features/core/auth/schemas";
 import { useTranslation } from "@/features/core/i18n/useTranslation";
+import { cn } from "@/lib/utils";
 
 export function ChangePasswordForm({
     isCreate,
@@ -30,105 +23,89 @@ export function ChangePasswordForm({
     isCreate?: boolean;
     callback?: () => void;
 }) {
-    type FormValues = typeof isCreate extends true
-        ? z.infer<typeof createPasswordSchema>
-        : z.infer<typeof changePasswordSchema>;
-
     const { t } = useTranslation();
     const [isPending, startTransition] = useTransition();
 
-    const form = useForm<FormValues>({
+    const form = useAppForm({
         defaultValues: {
             currentPassword: "",
             newPassword: "",
             confirmPassword: "",
         },
-    });
-
-    const { errors } = form.formState;
-
-    const onSubmit = useCallback(
-        (values: FormValues) =>
+        validators: {
+            onSubmit: changePasswordFormSchema,
+        },
+        onSubmit: async ({ value }) => {
             startTransition(async () => {
                 if (isCreate) {
-                    const res = await createPasswordAction(values);
-                    if (res.isError) {
-                        toast.error(res.message);
+                    const result = await createPasswordAction({
+                        newPassword: value.newPassword,
+                        confirmPassword: value.confirmPassword,
+                    });
+                    if (result.isError) {
+                        toast.error(result.message ?? t("error", { error: "" }));
                         return;
                     }
-                    toast.success(t("authTranslations.profile.password.submit"));
                 } else {
-                    const res = await changePasswordAction(values);
-                    if (res.isError) {
-                        toast.error(res.message);
+                    const result = await changePasswordAction(value);
+                    if (result.isError) {
+                        toast.error(result.message ?? t("error", { error: "" }));
                         return;
                     }
-                    toast.success(t("authTranslations.profile.password.submit"));
                 }
 
+                toast.success(t("authTranslations.profile.password.submit"));
+                form.reset();
                 callback?.();
-            }),
-        [isCreate, t, callback],
-    );
+            });
+        },
+    });
 
     return (
-        <form className="space-y-5" onSubmit={form.handleSubmit(onSubmit)}>
-            <FieldGroup>
-                {!isCreate && (
-                    <Field>
-                        <FieldLabel htmlFor="currentPassword">
-                            {t("authTranslations.profile.password.currentLabel")}
-                        </FieldLabel>
-                        <InputGroup>
-                            <InputGroupInput
-                                aria-invalid={!!errors.currentPassword}
-                                autoComplete="current-password"
-                                id="currentPassword"
-                                type="password"
-                                {...form.register("currentPassword")}
+        <form
+            className={cn("space-y-5")}
+            onSubmit={(event) => {
+                event.preventDefault();
+                form.handleSubmit();
+            }}
+        >
+            <FieldSet disabled={isPending}>
+                <FieldGroup>
+                    {!isCreate ? (
+                        <form.AppField name="currentPassword">
+                            {(field) => (
+                                <field.PasswordField
+                                    label={t("authTranslations.profile.password.currentLabel")}
+                                />
+                            )}
+                        </form.AppField>
+                    ) : null}
+
+                    <form.AppField name="newPassword">
+                        {(field) => (
+                            <field.PasswordField
+                                label={t("authTranslations.profile.password.newLabel")}
                             />
-                        </InputGroup>
-                        <FieldError errors={[errors.currentPassword]} />
-                    </Field>
-                )}
-                <Field>
-                    <FieldLabel htmlFor="newPassword">
-                        {t("authTranslations.profile.password.newLabel")}
-                    </FieldLabel>
-                    <InputGroup>
-                        <InputGroupInput
-                            aria-invalid={!!errors.newPassword}
-                            autoComplete="new-password"
-                            id="newPassword"
-                            type="password"
-                            {...form.register("newPassword")}
-                        />
-                    </InputGroup>
-                    <FieldError errors={[errors.newPassword]} />
-                </Field>
-                <Field>
-                    <FieldLabel htmlFor="confirmPassword">
-                        {t("authTranslations.profile.password.confirmLabel")}
-                    </FieldLabel>
-                    <InputGroup>
-                        <InputGroupInput
-                            aria-invalid={!!errors.confirmPassword}
-                            autoComplete="new-password"
-                            id="confirmPassword"
-                            type="password"
-                            {...form.register("confirmPassword")}
-                        />
-                    </InputGroup>
-                    <FieldError errors={[errors.confirmPassword]} />
-                </Field>
-            </FieldGroup>
-            <ButtonGroup className="justify-end">
-                <Button disabled={isPending} type="submit">
-                    {isPending
-                        ? t("authTranslations.profile.password.updating")
-                        : t("authTranslations.profile.password.submit")}
-                </Button>
-            </ButtonGroup>
+                        )}
+                    </form.AppField>
+
+                    <form.AppField name="confirmPassword">
+                        {(field) => (
+                            <field.PasswordField
+                                label={t("authTranslations.profile.password.confirmLabel")}
+                            />
+                        )}
+                    </form.AppField>
+                </FieldGroup>
+
+                <ButtonGroup className="justify-end">
+                    <Button type="submit">
+                        {isPending
+                            ? t("authTranslations.profile.password.updating")
+                            : t("authTranslations.profile.password.submit")}
+                    </Button>
+                </ButtonGroup>
+            </FieldSet>
         </form>
     );
 }

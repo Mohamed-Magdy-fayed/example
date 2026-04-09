@@ -1,10 +1,10 @@
 "use client";
 
+import { ArrowLeftIcon, RefreshCwIcon } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTransition } from "react";
 import { toast } from "sonner";
-
 import { useAppForm } from "@/components/forms/hooks";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,10 +15,16 @@ import {
 import {
 	InputOTP,
 	InputOTPGroup,
-	InputOTPSlot,
 	InputOTPSeparator,
+	InputOTPSlot,
 } from "@/components/ui/input-otp";
-import { signUpAction, oAuthSignIn } from "@/features/core/auth/nextjs/actions";
+import { H1, Muted } from "@/components/ui/typography";
+import {
+	oAuthSignIn,
+	sendSignUpOtpAction,
+	signUpAction,
+	verifySignUpOtpAction,
+} from "@/features/core/auth/nextjs/actions";
 import { useOauthProviderIcon } from "@/features/core/auth/nextjs/components/useOauthProviderIcon";
 import {
 	customerDetailsStepSchema,
@@ -30,11 +36,10 @@ import {
 	oAuthProviderValues,
 } from "@/features/core/auth/tables/user-oauth-accounts-table";
 import { useTranslation } from "@/features/core/i18n/useTranslation";
-import { api } from "@/trpc/react";
-import { ArrowLeftIcon, RefreshCwIcon } from "lucide-react";
-import { H1, Muted } from "@/components/ui/typography";
 
-function deriveStep(searchParams: URLSearchParams): "phone" | "otp" | "details" {
+function deriveStep(
+	searchParams: URLSearchParams,
+): "phone" | "otp" | "details" {
 	if (searchParams.get("vid")) return "details";
 	if (searchParams.get("phone")) return "otp";
 	return "phone";
@@ -51,9 +56,6 @@ export function SignUpForm() {
 	const phone = searchParams.get("phone") ?? "";
 	const verificationId = searchParams.get("vid") ?? "";
 
-	const sendOtpMutation = api.auth.otp.send.useMutation();
-	const verifyOtpMutation = api.auth.otp.verify.useMutation();
-
 	// Step 1: Phone form
 	const phoneForm = useAppForm({
 		defaultValues: { phone: "" },
@@ -61,7 +63,13 @@ export function SignUpForm() {
 		onSubmit: async ({ value }) => {
 			startTransition(async () => {
 				try {
-					await sendOtpMutation.mutateAsync({ phone: value.phone });
+					const result = await sendSignUpOtpAction({ phone: value.phone });
+					if (result.isError) {
+						toast.error(
+							result.message ?? t("authTranslations.signUp.error.generic"),
+						);
+						return;
+					}
 					const params = new URLSearchParams(searchParams);
 					params.set("phone", value.phone);
 					router.push(`/sign-up?${params.toString()}`);
@@ -83,10 +91,16 @@ export function SignUpForm() {
 		onSubmit: async ({ value }) => {
 			startTransition(async () => {
 				try {
-					const result = await verifyOtpMutation.mutateAsync({
+					const result = await verifySignUpOtpAction({
 						phone: value.phone,
 						otp: value.otp,
 					});
+					if (result.isError) {
+						toast.error(
+							result.message ?? t("authTranslations.signUp.error.generic"),
+						);
+						return;
+					}
 					const params = new URLSearchParams(searchParams);
 					params.set("vid", result.verificationId);
 					router.push(`/sign-up?${params.toString()}`);
@@ -104,7 +118,13 @@ export function SignUpForm() {
 	async function handleResendOtp() {
 		startTransition(async () => {
 			try {
-				await sendOtpMutation.mutateAsync({ phone });
+				const result = await sendSignUpOtpAction({ phone });
+				if (result.isError) {
+					toast.error(
+						result.message ?? t("authTranslations.signUp.error.generic"),
+					);
+					return;
+				}
 				toast.success(t("authTranslations.signUp.otpResent"));
 			} catch (error) {
 				toast.error(
@@ -144,12 +164,11 @@ export function SignUpForm() {
 	return (
 		<div className="space-y-4">
 			<div className="space-y-2 text-center">
-				<H1>
-					{t("authTranslations.signUp.title")}
-				</H1>
+				<H1>{t("authTranslations.signUp.title")}</H1>
 				<Muted>
 					{step === "otp" && t("authTranslations.signUp.otpStepDescription")}
-					{step === "details" && t("authTranslations.signUp.detailsStepDescription")}
+					{step === "details" &&
+						t("authTranslations.signUp.detailsStepDescription")}
 				</Muted>
 			</div>
 
@@ -177,7 +196,9 @@ export function SignUpForm() {
 								variant="outline"
 							>
 								{getOauthProviderIcon(provider)}
-								<span className="font-medium text-sm capitalize">{provider}</span>
+								<span className="font-medium text-sm capitalize">
+									{provider}
+								</span>
 							</Button>
 						))}
 					</div>
@@ -207,7 +228,11 @@ export function SignUpForm() {
 
 							<phoneForm.Subscribe selector={(state) => state.isSubmitting}>
 								{(isSubmitting) => (
-									<Button className="w-full" disabled={isPending || isSubmitting} type="submit">
+									<Button
+										className="w-full"
+										disabled={isPending || isSubmitting}
+										type="submit"
+									>
 										{isPending || isSubmitting
 											? t("authTranslations.signUp.sendingOtp")
 											: t("authTranslations.signUp.sendOtp")}
@@ -228,9 +253,7 @@ export function SignUpForm() {
 					}}
 				>
 					<FieldSet className="grid gap-4" disabled={isPending}>
-						<Muted className="text-center">
-							{phone}
-						</Muted>
+						<Muted className="text-center">{phone}</Muted>
 
 						<div dir="ltr">
 							<otpForm.AppField name="otp">
@@ -261,7 +284,11 @@ export function SignUpForm() {
 
 						<otpForm.Subscribe selector={(state) => state.isSubmitting}>
 							{(isSubmitting) => (
-								<Button className="w-full" disabled={isPending || isSubmitting} type="submit">
+								<Button
+									className="w-full"
+									disabled={isPending || isSubmitting}
+									type="submit"
+								>
 									{isPending || isSubmitting
 										? t("authTranslations.signUp.verifyingOtp")
 										: t("authTranslations.signUp.verifyOtp")}
@@ -331,7 +358,11 @@ export function SignUpForm() {
 
 						<detailsForm.Subscribe selector={(state) => state.isSubmitting}>
 							{(isSubmitting) => (
-								<Button className="w-full" disabled={isPending || isSubmitting} type="submit">
+								<Button
+									className="w-full"
+									disabled={isPending || isSubmitting}
+									type="submit"
+								>
 									{isPending || isSubmitting
 										? t("authTranslations.signUp.submitting")
 										: t("authTranslations.signUp.submit")}

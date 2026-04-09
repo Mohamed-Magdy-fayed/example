@@ -8,11 +8,12 @@ import {
   useState,
   useTransition,
 } from "react";
+
+import { Button } from "@/components/ui/button";
+import { Swap, SwapOff, SwapOn } from "@/components/ui/swap";
 import { setLocaleCookie } from "@/features/core/i18n/actions";
 import { mainTranslations } from "@/features/core/i18n/global";
 import { createI18n, type LanguageMessages } from "./lib";
-import { Button } from "@/components/ui/button";
-import { Swap, SwapOff, SwapOn } from "@/components/ui/swap";
 
 const TranslationContext = createContext({
   locale: "en",
@@ -66,7 +67,7 @@ export function useTranslation<
     // 1. Optimistically update the client-side state immediately.
     const newDir = newLocale === "ar" ? "rtl" : "ltr";
     document.dir = newDir;
-    document.getElementsByTagName("html")[0]?.setAttribute("dir", newDir);
+    document.documentElement.setAttribute("dir", newDir);
     context.setLocale(newLocale);
 
     // 2. Call the server action in a transition to avoid blocking UI.
@@ -88,15 +89,18 @@ export function LanguageSwitcher() {
   const { locale, setLocale } = useTranslation();
 
   return (
-    <Button asChild variant="ghost">
-      <Swap
-        animation="scale"
-        onSwappedChange={(val) => setLocale(val ? "en" : "ar")}
-        swapped={locale === "en"}
-      >
-        <SwapOn>AR</SwapOn>
-        <SwapOff>EN</SwapOff>
-      </Swap>
-    </Button>
-  )
+    <Button
+      render={
+        <Swap
+          animation="scale"
+          onSwappedChange={(val) => setLocale(val ? "en" : "ar")}
+          swapped={locale === "en"}
+        >
+          <SwapOn>AR</SwapOn>
+          <SwapOff>EN</SwapOff>
+        </Swap>
+      }
+      variant="ghost"
+    />
+  );
 }

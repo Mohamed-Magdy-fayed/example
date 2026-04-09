@@ -1,190 +1,128 @@
 "use client";
 
-import * as React from "react";
-
 import {
     Combobox,
     ComboboxChip,
     ComboboxChips,
     ComboboxChipsInput,
-    ComboboxCollection,
+    ComboboxClear,
     ComboboxContent,
     ComboboxEmpty,
     ComboboxInput,
     ComboboxItem,
     ComboboxList,
+    ComboboxTrigger,
+    ComboboxValue,
     useComboboxAnchor,
 } from "@/components/ui/combobox";
+import { InputGroupAddon, InputGroupButton } from "@/components/ui/input-group";
 import { useTranslation } from "@/features/core/i18n/useTranslation";
 
 type SelectOption = {
-    value: string;
     label: string;
+    value: string;
 };
 
-type MultipleSelectFieldProps = {
-    multiple: true;
-    value: string[] | null;
-    setValue: (val: string[] | null) => void;
-};
-
-type SingleSelectFieldProps = {
-    multiple?: false;
-    value: string | null;
-    setValue: (val: string | null) => void;
-};
-
-type SelectFieldProps = {
-    options: SelectOption[];
+type SelectManyFieldProps = {
     placeholder?: string;
-} & (MultipleSelectFieldProps | SingleSelectFieldProps);
+    options: SelectOption[];
+    setValue: (value: SelectOption[]) => void;
+    value: SelectOption[];
+};
 
-export function SelectField({
-    options,
+export function SelectManyField({
     placeholder,
-    multiple,
-    value,
+    options,
     setValue,
-}: SelectFieldProps) {
+    value,
+}: SelectManyFieldProps) {
+    const anchor = useComboboxAnchor();
     const { t } = useTranslation();
 
-    if (multiple) {
-        return (
-            <SelectFieldMulti
-                emptyText={t("common.empty")}
-                onValueChange={(val) => setValue(val.length > 0 ? val : null)}
-                options={options}
-                placeholder={placeholder}
-                value={value ?? []}
-            />
-        );
-    }
-
-    return (
-        <SelectFieldSingle
-            emptyText={t("common.empty")}
-            onValueChange={setValue}
-            options={options}
-            placeholder={placeholder}
-            value={value}
-        />
-    );
-}
-
-/* ─── Single-select ─── */
-
-function SelectFieldSingle({
-    options,
-    value,
-    onValueChange,
-    placeholder = "Select…",
-    emptyText = "No results.",
-}: {
-    options: SelectOption[];
-    value: string | null;
-    onValueChange: (val: string | null) => void;
-    placeholder?: string;
-    emptyText?: string;
-}) {
-    const itemValues = React.useMemo(
-        () => options.map((o) => o.value),
-        [options],
-    );
-    const optionsByValue = React.useMemo(
-        () => new Map(options.map((o) => [o.value, o.label])),
-        [options],
-    );
-    const toLabel = React.useCallback(
-        (val: string) => options.find((o) => o.value === val)?.label ?? val,
-        [options],
+    const labels = Object.fromEntries(
+        options.map((option) => [option.value, option.label]),
     );
 
     return (
         <Combobox
-            items={itemValues}
+            autoHighlight
+            items={options}
+            multiple
+            onValueChange={setValue}
             value={value}
-            onValueChange={onValueChange}
-            itemToStringLabel={toLabel}
         >
-            <ComboboxInput
-                placeholder={placeholder}
-                showClear={!!value}
-            />
-            <ComboboxContent>
+            <ComboboxChips className="w-full max-w-sm" ref={anchor}>
+                <ComboboxValue>
+                    {(selectedValues) => (
+                        <>
+                            {selectedValues.map((value: string) => (
+                                <ComboboxChip key={value}>{labels[value]}</ComboboxChip>
+                            ))}
+                            <ComboboxChipsInput placeholder={placeholder} />
+                            <InputGroupAddon align={"inline-end"}>
+                                <InputGroupButton
+                                    className="group-has-data-[slot=combobox-clear]/input-group:hidden data-pressed:bg-transparent"
+                                    data-slot="input-group-button"
+                                    render={<ComboboxTrigger />}
+                                    size="icon-xs"
+                                    variant="ghost"
+                                />
+                            </InputGroupAddon>
+                            {selectedValues.length > 0 && (
+                                <InputGroupAddon align={"inline-end"}>
+                                    <InputGroupButton render={<ComboboxClear />} />
+                                </InputGroupAddon>
+                            )}
+                        </>
+                    )}
+                </ComboboxValue>
+            </ComboboxChips>
+            <ComboboxContent anchor={anchor}>
+                <ComboboxEmpty>{t("common.noOptionsFound")}</ComboboxEmpty>
                 <ComboboxList>
-                    <ComboboxEmpty>{emptyText}</ComboboxEmpty>
-                    <ComboboxCollection>
-                        {(itemValue) => (
-                            <ComboboxItem key={itemValue} value={itemValue}>
-                                {optionsByValue.get(itemValue) ?? itemValue}
-                            </ComboboxItem>
-                        )}
-                    </ComboboxCollection>
+                    {(item: SelectOption) => (
+                        <ComboboxItem key={item.value} value={item.value}>
+                            {item.label}
+                        </ComboboxItem>
+                    )}
                 </ComboboxList>
             </ComboboxContent>
         </Combobox>
     );
 }
 
-/* ─── Multi-select ─── */
-
-function SelectFieldMulti({
-    options,
-    value,
-    onValueChange,
-    placeholder = "Select…",
-    emptyText = "No results.",
-}: {
-    options: SelectOption[];
-    value: string[];
-    onValueChange: (val: string[]) => void;
+type SelectOneFieldProps = {
     placeholder?: string;
-    emptyText?: string;
-}) {
-    const anchor = useComboboxAnchor();
-    const itemValues = React.useMemo(
-        () => options.map((o) => o.value),
-        [options],
-    );
-    const optionsByValue = React.useMemo(
-        () => new Map(options.map((o) => [o.value, o.label])),
-        [options],
-    );
-    const toLabel = React.useCallback(
-        (val: string) => options.find((o) => o.value === val)?.label ?? val,
-        [options],
-    );
-    const selectedOptions = React.useMemo(
-        () => options.filter((o) => value.includes(o.value)),
-        [options, value],
-    );
+    options: SelectOption[];
+    setValue: (value: SelectOption | null) => void;
+    value: SelectOption | null;
+};
+
+export function SelectOneField({
+    placeholder,
+    options,
+    setValue,
+    value,
+}: SelectOneFieldProps) {
+    const { t } = useTranslation();
 
     return (
         <Combobox
-            items={itemValues}
+            autoHighlight
+            items={options}
+            itemToStringValue={(option) => option.label}
+            onValueChange={setValue}
             value={value}
-            onValueChange={onValueChange}
-            itemToStringLabel={toLabel}
-            multiple
         >
-            <ComboboxChips ref={anchor}>
-                {selectedOptions.map((item) => (
-                    <ComboboxChip key={item.value}>
-                        {item.label}
-                    </ComboboxChip>
-                ))}
-                <ComboboxChipsInput placeholder={placeholder} />
-            </ComboboxChips>
-            <ComboboxContent anchor={anchor}>
+            <ComboboxInput placeholder={placeholder} />
+            <ComboboxContent>
+                <ComboboxEmpty>{t("common.noOptionsFound")}</ComboboxEmpty>
                 <ComboboxList>
-                    <ComboboxEmpty>{emptyText}</ComboboxEmpty>
-                    <ComboboxCollection>
-                        {(itemValue) => (
-                            <ComboboxItem key={itemValue} value={itemValue}>
-                                {optionsByValue.get(itemValue) ?? itemValue}
-                            </ComboboxItem>
-                        )}
-                    </ComboboxCollection>
+                    {(item: SelectOption) => (
+                        <ComboboxItem key={item.value} value={item.value}>
+                            {item.label}
+                        </ComboboxItem>
+                    )}
                 </ComboboxList>
             </ComboboxContent>
         </Combobox>

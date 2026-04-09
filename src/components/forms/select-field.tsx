@@ -2,7 +2,10 @@
 
 import { useCallback } from "react";
 
-import { SelectField } from "@/components/general/select-field";
+import {
+    SelectManyField,
+    SelectOneField,
+} from "@/components/general/select-field";
 import { FormBase, type FormFieldProps } from "./form-base";
 import { useFieldContext } from "./hooks";
 
@@ -38,12 +41,11 @@ export function FormSelectField({
     if (multiple) {
         return (
             <FormBase {...props}>
-                <SelectField
-                    multiple
+                <SelectManyField
                     options={options}
                     placeholder={placeholder}
-                    setValue={setMultipleValue}
-                    value={field.state.value as string[]}
+                    setValue={(val) => setMultipleValue(val.map(item => item.value))}
+                    value={(field.state.value as string[]).map(val => ({ value: val, label: val }))}
                 />
             </FormBase>
         );
@@ -51,11 +53,11 @@ export function FormSelectField({
 
     return (
         <FormBase {...props}>
-            <SelectField
+            <SelectOneField
                 options={options}
                 placeholder={placeholder}
-                setValue={setSingleValue}
-                value={field.state.value as string}
+                setValue={(val) => setSingleValue(val?.value ?? null)}
+                value={{ value: field.state.value as string, label: field.state.value as string }}
             />
         </FormBase>
     );

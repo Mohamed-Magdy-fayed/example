@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { toast } from "sonner";
 
@@ -13,7 +12,6 @@ import { passwordResetRequestSchema } from "@/features/core/auth/schemas";
 import { useTranslation } from "@/features/core/i18n/useTranslation";
 
 export function ForgotPasswordForm() {
-    const router = useRouter();
     const { t } = useTranslation();
     const [isPending, startTransition] = useTransition();
 
@@ -27,9 +25,6 @@ export function ForgotPasswordForm() {
                     toast.error(res.message || "");
                     return;
                 }
-
-                toast.success(t("authTranslations.passwordReset.request.success"));
-                router.push(`/reset-password?phone=${encodeURIComponent(value.phone)}`);
             });
         },
     });

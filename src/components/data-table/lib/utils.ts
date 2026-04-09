@@ -4,7 +4,6 @@ import type {
   ExtendedColumnFilter,
   FilterOperator,
   FilterVariant,
-  Option,
 } from "@/components/data-table/types";
 import { cn } from "@/lib/utils";
 
